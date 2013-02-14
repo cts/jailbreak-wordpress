@@ -16,4 +16,8 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme) {
   // For each page in theme.contentmap
   // Scrape the page HTML
   // Store the page HTML (theme.sources[url] = html;)
+
+
+  // Return a status object
+  return { success: true };
 };

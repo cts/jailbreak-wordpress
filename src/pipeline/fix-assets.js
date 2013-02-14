@@ -15,4 +15,5 @@ Jailbreak.Pipeline.FixAssets = function(theme, opts) {
 };
 
 Jailbreak.Pipeline.FixAssets.prototype.run = function(theme) {
+  return { success: true };
 };

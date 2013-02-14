@@ -32,4 +32,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
   //   write mockup HTML
   //   write CSS files
   //   write IMG files ...etc
+
+  // Return a status object
+  return { success: true };
 };

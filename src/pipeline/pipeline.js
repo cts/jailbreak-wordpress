@@ -18,8 +18,12 @@ Jailbreak.Pipeline.Pipeline = function() {
 };
 
 Jailbreak.Pipeline.Pipeline.prototype.run = function(theme) {
-  for (var i = 0; i < this.stages.length; i++) {
+  var looksGood = true;
+  for (var i = 0; (looksGood && (i < this.stages.length)); i++) {
     console.log("[Pipeline] Running Stage: " + this.stages[i].name);
-    this.stages[i].run(theme);
+    var result = this.stages[i].run(theme);
+    looksGood = looksGood && result.success;
+    theme.data.pipelineStatus[this.stages[i].name] = result;
+    theme.saveToFile();
   }
 };
