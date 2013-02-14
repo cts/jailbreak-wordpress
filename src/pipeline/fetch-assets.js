@@ -14,6 +14,9 @@ if (typeof Jailbreak.Pipeline == "undefined") {
 Jailbreak.Pipeline.FetchAssets = function(opts) {
   this.name = "Fetch Assets";
 
+};
+
+Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
   // http-agent and jsdom are useful for scraping
   // see:
   // https://gist.github.com/DTrejo/790580
@@ -29,7 +32,4 @@ Jailbreak.Pipeline.FetchAssets = function(opts) {
   //   write mockup HTML
   //   write CSS files
   //   write IMG files ...etc
-};
-
-Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
 };
