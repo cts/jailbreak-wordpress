@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+var path = require('path');
+var fs   = require('fs');
+var target = path.join(path.dirname(fs.realpathSync(__filename)), '../target');
+
+require(target + '/jailbreak-wordpress').run();
