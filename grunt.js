@@ -12,19 +12,24 @@ module.exports = function(grunt) {
               "* <%= pkg.name %>\n" +
               " * <%= pkg.description %>\n" +
               " *\n" +
-              " * @author <%= pkg.author.name %> <<%= pkg.author.email %>>\n" +
-              " * @copyright <%= pkg.author.name %> <%= grunt.template.today('yyyy') %>\n" +
+              " * @author Ted Benson and Sarah Scodel\n" +
+              " * @copyright MIT CSAIL Haystack Group <%= grunt.template.today('yyyy') %>\n" +
               " * @license <%= pkg.licenses[0].type %> <<%= pkg.licenses[0].url %>>\n" +
               " * @link <%= pkg.homepage %>\n" +
               " * @module <%= pkg.name %>\n" +
               " * @version <%= pkg.version %>\n" +
-              " */"
+              " */\n"
     },
     concat: {
       dist : {
         src : [
           "<banner>",
-          "src/jailbreak-wordpress.js"
+          "src/fragments/prefix._js",
+          "src/model/theme.js",
+          "src/pipeline/fetch-assets.js",
+          "src/pipeline/fix-assets.js",
+          "src/jailbreak-wordpress.js",
+          "src/fragments/postfix._js"
         ],
         dest : "release/jailbreak-wordpress.js"
       }
