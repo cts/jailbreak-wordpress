@@ -8,6 +8,8 @@ if (typeof Jailbreak == "undefined") {
 Jailbreak.Theme = function(opts, args) {
   this.initialize(args);
 
+  this.contentMap = null;
+
   // HTML Sources representing the theme
   // Scraped from Wordpress
   this.sources = {};
