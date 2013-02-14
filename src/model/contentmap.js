@@ -15,11 +15,11 @@ Jailbreak.ContentPage = function(opts, args) {
  *
  * opts: options array
  */
-Jailbreak.ContentMap = function(opts, args) {
-  this.initialize(args);
+Jailbreak.ContentMap = function(contentMapFile) {
+  this.initialize();
   this.pages = [];
 };
 
-Jailbreak.ContentMap.prototype.initialize = function(args) {
+Jailbreak.ContentMap.prototype.initialize = function() {
 };
  

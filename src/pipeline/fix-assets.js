@@ -11,4 +11,8 @@ if (typeof Jailbreak.Pipeline == "undefined") {
  */
 
 Jailbreak.Pipeline.FixAssets = function(theme, opts) {
+  this.name = "Fix Assets";
+};
+
+Jailbreak.Pipeline.FixAssets.prototype.run = function(theme) {
 };

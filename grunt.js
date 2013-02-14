@@ -26,10 +26,13 @@ module.exports = function(grunt) {
           "<banner>",
           "src/fragments/prefix._js",
           "src/model/theme.js",
+          "src/model/contentmap.js",
+          "src/pipeline/fetch-pages.js",
           "src/pipeline/fetch-assets.js",
           "src/pipeline/fix-assets.js",
-          "src/jailbreak-wordpress.js",
-          "src/fragments/postfix._js"
+          "src/pipeline/pipeline.js",
+          "src/fragments/postfix._js",
+          "src/jailbreak-wordpress.js"
         ],
         dest : "release/jailbreak-wordpress.js"
       }

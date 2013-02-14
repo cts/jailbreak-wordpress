@@ -40,6 +40,8 @@
     }
   ],
   "dependencies": {
+    "optimist": "*",
+    "jsdom": "*"
   },
   "devDependencies": {
   },
