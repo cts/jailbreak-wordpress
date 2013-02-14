@@ -20,30 +20,62 @@ if (typeof Jailbreak == "undefined") {
 /**
  * opts: options array
  */
-Jailbreak.Theme = function(opts, args) {
-  this.initialize(args);
+Jailbreak.Theme = function(name, directory, contentMap) {
+  this.name = name;
+  this.directory = directory;
+  this.filename = path.join(directory, name + ".json");
+  this.contentMap = contentMap;
 
-  this.contentMap = null;
+  // Stores *all* data that is to be peristed to disk
+  // and saved between pipeline stages.
+  this.data = {
+    // HTML Sources representing the theme
+    // Scraped from Wordpress
+    sources: {},
+ 
+    // HTML Mockups representing the theme
+    mockups: {},
 
-  // HTML Sources representing the theme
-  // Scraped from Wordpress
-  this.sources = {};
+    // URL -> Treesheets Contents Map
+    treesheets: {},
 
-  // HTML Mockups representing the theme
-  this.mockups = {};
+    // URL -> Stylesheet Contents Map
+    stylesheets: {},
 
-  // URL -> Treesheets Contents Map
-  this.treesheets = {};
+    // URL -> Javascript Map
+    javascripts: {},
 
-  // URL -> Stylesheet Contents Map
-  this.stylesheets = {};
+    // Pipeline name
+    pipelineStatus: {}
+  };
 
-  // URL -> Javascript Map
-  this.javascripts = {};
-
+  this.initialize();
 };
 
 Jailbreak.Theme.prototype.initialize = function(args) {
+  console.log("[Theme] Initializing: ", this.name);
+  this.loadFromFile();
+};
+
+Jailbreak.Theme.prototype.loadFromFile = function() {
+  if (fs.existsSync(this.filename)) {
+    try {
+      var json = fs.readFileSync(this.filename, "utf-8");
+      this.data = JSON.parse(json);
+    } catch (e) {
+      console.log("Could not fead file", this.filename);
+    }
+  } else {
+    console.log("No existing themefile for", this.filename);
+  } };
+
+Jailbreak.Theme.prototype.saveToFile = function() {
+  try {
+    var json = JSON.stringify(this.data);
+    fs.writeFileSync(this.filename, json, "utf8");
+  } catch (e) {
+    console.log("Could not write file", this.filename);
+  }
 };
 
 if (typeof Jailbreak == "undefined") {
@@ -84,13 +116,16 @@ if (typeof Jailbreak.Pipeline == "undefined") {
  */
 Jailbreak.Pipeline.FetchPages = function(theme, opts) {
   this.name = "Fetch Pages";
-
-  // For each page in theme.contentmap
-  // Scrape the page HTML
-  // Store the page HTML (theme.sources[url] = html;)
 };
 
 Jailbreak.Pipeline.FetchPages.prototype.run = function(theme) {
+  // For each page in theme.contentmap
+  // Scrape the page HTML
+  // Store the page HTML (theme.sources[url] = html;)
+
+
+  // Return a status object
+  return { success: true };
 };
 
 if (typeof Jailbreak == "undefined") {
@@ -109,6 +144,9 @@ if (typeof Jailbreak.Pipeline == "undefined") {
 Jailbreak.Pipeline.FetchAssets = function(opts) {
   this.name = "Fetch Assets";
 
+};
+
+Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
   // http-agent and jsdom are useful for scraping
   // see:
   // https://gist.github.com/DTrejo/790580
@@ -124,9 +162,9 @@ Jailbreak.Pipeline.FetchAssets = function(opts) {
   //   write mockup HTML
   //   write CSS files
   //   write IMG files ...etc
-};
 
-Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
+  // Return a status object
+  return { success: true };
 };
 
 if (typeof Jailbreak == "undefined") {
@@ -146,6 +184,7 @@ Jailbreak.Pipeline.FixAssets = function(theme, opts) {
 };
 
 Jailbreak.Pipeline.FixAssets.prototype.run = function(theme) {
+  return { success: true };
 };
 
 if (typeof Jailbreak == "undefined") {
@@ -168,9 +207,13 @@ Jailbreak.Pipeline.Pipeline = function() {
 };
 
 Jailbreak.Pipeline.Pipeline.prototype.run = function(theme) {
-  for (var i = 0; i < this.stages.length; i++) {
+  var looksGood = true;
+  for (var i = 0; (looksGood && (i < this.stages.length)); i++) {
     console.log("[Pipeline] Running Stage: " + this.stages[i].name);
-    this.stages[i].run(theme);
+    var result = this.stages[i].run(theme);
+    looksGood = looksGood && result.success;
+    theme.data.pipelineStatus[this.stages[i].name] = result;
+    theme.saveToFile();
   }
 };
 

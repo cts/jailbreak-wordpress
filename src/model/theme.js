@@ -19,34 +19,46 @@ Jailbreak.Theme = function(name, directory, contentMap) {
     sources: {},
  
     // HTML Mockups representing the theme
-    this.mockups = {},
+    mockups: {},
 
     // URL -> Treesheets Contents Map
-    this.treesheets = {},
+    treesheets: {},
 
     // URL -> Stylesheet Contents Map
-    this.stylesheets = {},
+    stylesheets: {},
 
     // URL -> Javascript Map
-    this.javascripts = {},
+    javascripts: {},
 
     // Pipeline name
-    this.pipelineStatus = {}
+    pipelineStatus: {}
   };
 
   this.initialize();
 };
 
 Jailbreak.Theme.prototype.initialize = function(args) {
-  // TODO(eob).
-  // Tries to load the theme a file.
+  console.log("[Theme] Initializing: ", this.name);
+  this.loadFromFile();
 };
 
 Jailbreak.Theme.prototype.loadFromFile = function() {
-  var json = "";
-  this.data = JSON.parse(json);
-};
+  if (fs.existsSync(this.filename)) {
+    try {
+      var json = fs.readFileSync(this.filename, "utf-8");
+      this.data = JSON.parse(json);
+    } catch (e) {
+      console.log("Could not fead file", this.filename);
+    }
+  } else {
+    console.log("No existing themefile for", this.filename);
+  } };
 
 Jailbreak.Theme.prototype.saveToFile = function() {
-  var json = JSON.stringify(this.data);
+  try {
+    var json = JSON.stringify(this.data);
+    fs.writeFileSync(this.filename, json, "utf8");
+  } catch (e) {
+    console.log("Could not write file", this.filename);
+  }
 };
