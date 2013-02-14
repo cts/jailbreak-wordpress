@@ -11,16 +11,16 @@
     "blogging",
     "wordpress"
   ],
-  "maintainers": [{
-    "name": "Ted Benson",
-    "email": "eob@csail.mit.edu",
-    "url": "http://www.edwardbenson.com/"
-  },
+  "maintainers": [
   {
     "name": "Sarah Scodel",
     "email": "sscodel@mit.edu"
-  }
-  ],
+  },
+  {
+    "name": "Ted Benson",
+    "email": "eob@csail.mit.edu",
+    "url": "http://www.edwardbenson.com/"
+  }],
   "contributors": [
   ],
   "bugs": {
