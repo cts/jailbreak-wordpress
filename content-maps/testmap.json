@@ -1,0 +1,14 @@
+{
+  "name":"Test map. Just to load some URLs",
+  "domain":"http://blog.flickr.net",
+  "pages":[
+    {
+      "name":"index",
+      "path":"/en"
+    },
+    {
+      "name":"post",
+      "path":"/en/2013/02/14/18-year-old-prodigy-photographer/"
+    }
+  ]
+}
