@@ -82,9 +82,38 @@ if (typeof Jailbreak == "undefined") {
   Jailbreak = {};
 } 
 
-Jailbreak.ContentPage = function(opts, args) {
+Jailbreak.ContentPage = function() {
+
+  /* The URL for this page. */
+  this.url = null;
+
+  /* The name for this page. Should be unique across the content map */
+  this.name = null;
+};
+
+/*
+ * Methods
+ */
+
+Jailbreak.ContentPage.prototype.reset = function() {
+  this.name = null;
   this.url = null;
 };
+
+Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
+  this.reset();
+  if ((typeof json.path != "undefined") && (contentMap.domain !== null)) {
+    this.url = contentMap.domain + json.path;
+  }
+  if (typeof json.name != "undefined") {
+    this.name = json.name;
+  }
+};
+
+
+if (typeof Jailbreak == "undefined") {
+  Jailbreak = {};
+} 
 
 /**
  * Janitor's key to the site.
@@ -96,13 +125,60 @@ Jailbreak.ContentPage = function(opts, args) {
  * opts: options array
  */
 Jailbreak.ContentMap = function(contentMapFile) {
-  this.initialize();
+
+  /* A list of ContentPage objects */
   this.pages = [];
+
+  /* A name for this map */
+  this.name = null;
+
+  /* The base domain + path for this content map.
+     All pages are specified relative to this path. */
+  this.domain = null;
+
+  this.loadFromFile(contentMapFile);
 };
 
-Jailbreak.ContentMap.prototype.initialize = function() {
+Jailbreak.ContentMap.prototype.reset = function() {
+  this.pages = [];
+  this.name = null;
+  this.domain = null;
 };
- 
+
+Jailbreak.ContentMap.prototype.loadFromFile = function(filename) {
+  if (fs.existsSync(filename)) {
+    try {
+      var json = fs.readFileSync(filename, "utf-8");
+      this.loadFromJson(JSON.parse(json));
+    } catch (e) {
+      console.log("Could not read file", filename);
+      console.log(e);
+    }
+  } else {
+    console.log("No existing content map file for", filename);
+  } 
+};
+
+Jailbreak.ContentMap.prototype.loadFromJson = function(json) {
+  this.reset();
+  
+  if (typeof json.name != "undefined") {
+    this.name = json.name;
+  }
+
+  if (typeof json.domain != "undefined") {
+    this.domain = json.domain;
+  }
+
+  if (typeof json.pages != "undefined") {
+    for (var i = 0; i < json.pages.length; i++) {
+      var pageJson = json.pages[i];
+      var page = new Jailbreak.ContentPage();
+      page.loadFromJson(pageJson, this);
+      this.pages[this.pages.length] = page;
+    }
+  }
+};
 
 if (typeof Jailbreak == "undefined") {
   Jailbreak = {};
@@ -110,6 +186,10 @@ if (typeof Jailbreak == "undefined") {
 if (typeof Jailbreak.Pipeline == "undefined") {
   Jailbreak.Pipeline = {};
 }
+
+Jailbreak.Pipeline.log = function(stage, message) {
+  console.log("[" + stage.name + "] " + message);
+};
 
 /*
  * Walks every URL in the contentmap and scrapes it.
@@ -119,21 +199,18 @@ Jailbreak.Pipeline.FetchPages = function(theme, opts) {
 };
 
 Jailbreak.Pipeline.FetchPages.prototype.run = function(theme) {
-  // For each page in theme.contentmap
-  // Scrape the page HTML
-  // Store the page HTML (theme.sources[url] = html;)
-
+  for (var i = 0; i < theme.contentMap.pages.length; i++) {
+    var name = theme.contentMap.pages[i].name;
+    var url = theme.contentMap.pages[i].url;
+    Jailbreak.Pipeline.log(this, "Scraping " + name + ": " + url);
+    // TODO(sscodel): scrape page HTML, put it in theme object.
+  }
 
   // Return a status object
+  // TODO(sscodel): possibly return error if the scrape fails
+  // error -> false success value and a message explaining error
   return { success: true };
 };
-
-if (typeof Jailbreak == "undefined") {
-  Jailbreak = {};
-}
-if (typeof Jailbreak.Pipeline == "undefined") {
-  Jailbreak.Pipeline = {};
-}
 
 /**
  * Takes a theme object and downloads all assets (JS, CSS, IMG, etc),
@@ -167,13 +244,6 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
   return { success: true };
 };
 
-if (typeof Jailbreak == "undefined") {
-  Jailbreak = {};
-}
-if (typeof Jailbreak.Pipeline == "undefined") {
-  Jailbreak.Pipeline = {};
-}
-
 /**
  * Takes a theme object with assets already fetched and re-writes
  * the HTML so that it references local project structure.
@@ -187,19 +257,13 @@ Jailbreak.Pipeline.FixAssets.prototype.run = function(theme) {
   return { success: true };
 };
 
-if (typeof Jailbreak == "undefined") {
-  Jailbreak = {};
-}
-if (typeof Jailbreak.Pipeline == "undefined") {
-  Jailbreak.Pipeline = {};
-}
-
 /**
  * Takes a theme object with assets already fetched and re-writes
  * the HTML so that it references local project structure.
  */
 
 Jailbreak.Pipeline.Pipeline = function() {
+  this.name = "Pipeline";
   this.stages = [
     new Jailbreak.Pipeline.FetchPages(),
     new Jailbreak.Pipeline.FetchAssets()
@@ -209,7 +273,7 @@ Jailbreak.Pipeline.Pipeline = function() {
 Jailbreak.Pipeline.Pipeline.prototype.run = function(theme) {
   var looksGood = true;
   for (var i = 0; (looksGood && (i < this.stages.length)); i++) {
-    console.log("[Pipeline] Running Stage: " + this.stages[i].name);
+    Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[i].name);
     var result = this.stages[i].run(theme);
     looksGood = looksGood && result.success;
     theme.data.pipelineStatus[this.stages[i].name] = result;

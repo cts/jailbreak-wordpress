@@ -1,10 +1,3 @@
-if (typeof Jailbreak == "undefined") {
-  Jailbreak = {};
-}
-if (typeof Jailbreak.Pipeline == "undefined") {
-  Jailbreak.Pipeline = {};
-}
-
 /*
  * Walks every URL in the contentmap and scrapes it.
  */
@@ -13,11 +6,15 @@ Jailbreak.Pipeline.FetchPages = function(theme, opts) {
 };
 
 Jailbreak.Pipeline.FetchPages.prototype.run = function(theme) {
-  // For each page in theme.contentmap
-  // Scrape the page HTML
-  // Store the page HTML (theme.sources[url] = html;)
-
+  for (var i = 0; i < theme.contentMap.pages.length; i++) {
+    var name = theme.contentMap.pages[i].name;
+    var url = theme.contentMap.pages[i].url;
+    Jailbreak.Pipeline.log(this, "Scraping " + name + ": " + url);
+    // TODO(sscodel): scrape page HTML, put it in theme object.
+  }
 
   // Return a status object
+  // TODO(sscodel): possibly return error if the scrape fails
+  // error -> false success value and a message explaining error
   return { success: true };
 };
