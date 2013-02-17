@@ -13,6 +13,8 @@
 
 (function() {
 
+var _ = require("underscore");
+
 if (typeof Jailbreak == "undefined") {
   Jailbreak = {};
 }
@@ -46,7 +48,9 @@ Jailbreak.Theme = function(name, directory, contentMap) {
     javascripts: {},
 
     // Pipeline name
-    pipelineStatus: {}
+    pipelineStatus: {},
+    
+    images: {}
   };
 
   this.initialize();
@@ -97,13 +101,13 @@ Jailbreak.ContentPage = function() {
 
 Jailbreak.ContentPage.prototype.reset = function() {
   this.name = null;
-  this.url = null;
+  this.path = null;
 };
 
 Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
   this.reset();
-  if ((typeof json.path != "undefined") && (contentMap.domain !== null)) {
-    this.url = contentMap.domain + json.path;
+  if (typeof json.path != "undefined") {
+    this.path = json.path;
   }
   if (typeof json.name != "undefined") {
     this.name = json.name;
@@ -191,25 +195,53 @@ Jailbreak.Pipeline.log = function(stage, message) {
   console.log("[" + stage.name + "] " + message);
 };
 
+
 /*
  * Walks every URL in the contentmap and scrapes it.
  */
 Jailbreak.Pipeline.FetchPages = function(theme, opts) {
   this.name = "Fetch Pages";
+  this.self = this;
 };
 
-Jailbreak.Pipeline.FetchPages.prototype.run = function(theme) {
+Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
+
+  var domain = theme.contentMap.domain;
+  var paths = [];
+  var self = this;
+
   for (var i = 0; i < theme.contentMap.pages.length; i++) {
-    var name = theme.contentMap.pages[i].name;
-    var url = theme.contentMap.pages[i].url;
-    Jailbreak.Pipeline.log(this, "Scraping " + name + ": " + url);
-    // TODO(sscodel): scrape page HTML, put it in theme object.
+    var pageName = theme.contentMap.pages[i].name;
+    var path = theme.contentMap.pages[i].path;
+    paths.push(path);
+    Jailbreak.Pipeline.log(self, "Scraping " + pageName + ": " + path);
   }
 
-  // Return a status object
-  // TODO(sscodel): possibly return error if the scrape fails
-  // error -> false success value and a message explaining error
-  return { success: true };
+  var util = require('util');
+  var url2 = require('url');
+  var httpAgent = require('http-agent');
+  var jsdom = require('jsdom').jsdom;
+  var agent = httpAgent.create(domain, paths);
+
+  count = 0;
+  agent.addListener('next', function (e, agent) {
+     if (e) {
+       Jailbreak.Pipeline.log(self, 'error: ' + e);
+       pipeline.advance(self, theme, {success:false});
+     }
+    //Not sure what the mapping should be
+    theme.data.sources[theme.contentMap.pages[count].name]=agent.body;
+    count++;
+    agent.next();
+  });
+  
+  agent.addListener('stop', function (err, agent) {
+    // Jailbreak.Pipeline.log(self, "length im middle: " + theme.data.sources.post);
+    //Jailbreak.Pipeline.log(self, "length im middle: " + theme.data.sources.index);
+    pipeline.advance(self, theme, { success: true });
+  });
+  // Start the agent
+  agent.start();
 };
 
 /**
@@ -223,7 +255,7 @@ Jailbreak.Pipeline.FetchAssets = function(opts) {
 
 };
 
-Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
+Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme, pipeline) {
   // http-agent and jsdom are useful for scraping
   // see:
   // https://gist.github.com/DTrejo/790580
@@ -240,8 +272,56 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
   //   write CSS files
   //   write IMG files ...etc
 
+  var self = this;
+  
+  var fetch = function() {
+    var scrapeLink = function(link, mapping) {
+      var request = require('request');
+      request(link, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+        mapping[link]=body;
+        //Jailbreak.Pipeline.log(self, "mapping: " + mapping[link]);
+        }
+      });
+    };
+    
+    var mapData=function(html) {
+      var jsdom = require('jsdom').jsdom;
+      var window =jsdom(html).createWindow();
+      var $ = require('jquery').create(window);
+    
+      $('img').map(function() { theme.data.images[this.src]=true; });
+      $("link[type*=css]").map(function() { scrapeLink(this.href, theme.data.stylesheets);});
+      $("script[type*=javascript]").map(function() { 
+        if (this.src) {
+          scrapeLink(this.src, theme.data.javascripts);
+        }
+      });
+    };
+    
+
+    for (var x in theme.data.sources) {
+      if(theme.data.sources.hasOwnProperty(x)){
+        mapData(theme.data.sources[x]);
+      }
+    }
+   
+  };
+
+
+  setTimeout(fetch,2000);
+  var print = function() {
+    Jailbreak.Pipeline.log(self,  "see this at end"); 
+    for (var key in theme.data.stylesheets) {
+      if(theme.data.stylesheets.hasOwnProperty(key)){
+      Jailbreak.Pipeline.log(self, key); 
+      }
+    }
+  };
+  
+  setTimeout(print,4000);
   // Return a status object
-  return { success: true };
+  pipeline.advance(self, theme, { success: true });
 };
 
 /**
@@ -253,8 +333,8 @@ Jailbreak.Pipeline.FixAssets = function(theme, opts) {
   this.name = "Fix Assets";
 };
 
-Jailbreak.Pipeline.FixAssets.prototype.run = function(theme) {
-  return { success: true };
+Jailbreak.Pipeline.FixAssets.prototype.run = function(theme, pipeline) {
+  pipeline.advance(this, theme, { success: true });
 };
 
 /**
@@ -271,13 +351,25 @@ Jailbreak.Pipeline.Pipeline = function() {
 };
 
 Jailbreak.Pipeline.Pipeline.prototype.run = function(theme) {
-  var looksGood = true;
-  for (var i = 0; (looksGood && (i < this.stages.length)); i++) {
-    Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[i].name);
-    var result = this.stages[i].run(theme);
-    looksGood = looksGood && result.success;
-    theme.data.pipelineStatus[this.stages[i].name] = result;
-    theme.saveToFile();
+  Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[0].name);
+  this.stages[0].run(theme, this);
+};
+
+Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
+  theme.data.pipelineStatus[stage.name] = result;
+  theme.saveToFile();
+  if (result.success) {
+    var nextStage = _.indexOf(this.stages, stage) + 1;
+    if (nextStage == -1) {
+      Jailbreak.Pipeline.log(this, "Error: can't figure out where I am");
+    } else if (nextStage < this.stages.length) {
+      Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[nextStage].name);
+      this.stages[nextStage].run(theme, this);
+    } else {
+      Jailbreak.Pipeline.log(this, "Pipeline complete");
+    }
+  } else {
+    Jailbreak.Pipeline.log(this, "Aborting pipeline because of bad result.");
   }
 };
 

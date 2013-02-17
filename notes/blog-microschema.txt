@@ -1,0 +1,20 @@
+.blog {
+  .page {
+    .title
+    .subtitle
+  }
+  .articles {
+    article {
+      .title
+      .subtitle
+      .author
+      .preview
+      .body
+      .tags {
+        .tag
+      }
+      .categories {
+        .tag
+      }
+    }
+}

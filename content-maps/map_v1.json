@@ -1,0 +1,19 @@
+{
+  "name":"Test map. Just to load some URLs",
+  "domain":"groups.csail.mit.edu",
+  "pages":[
+    {
+      "name":"index",
+      "path":"/en"
+      "data": {
+        "blog": {
+          "title": "Haystack Blog",
+          "link": "http://groups.csail.mit.edu/haystack/blog"
+          "subtitle": 'MIT CSAIL Research (<a href="http://haystack.csail.mit.edu/">Group Website</a>)'
+        }
+      },
+      "cts": {
+      }
+    }
+  ]
+}

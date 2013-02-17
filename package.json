@@ -41,7 +41,12 @@
   ],
   "dependencies": {
     "optimist": "*",
-    "jsdom": "*"
+    "underscore": "*",
+    "jsdom": "*",
+    "jquery": "*",
+    "util": "*",
+    "url": "*",
+    "http-agent": "*"
   },
   "devDependencies": {
   },

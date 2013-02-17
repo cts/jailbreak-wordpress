@@ -1,0 +1,14 @@
+Inputs:
+  * HTML Document
+  * JSON Document, with values matching the HTML document
+  * CTS file with unbound references into the HTML Document
+
+Task:
+  * Re-bind the CTS selectors to XPATH
+
+Expected Twist:
+  * Inline-output of variables from Wordpress will conflate
+    JSON values inside large plaintext blobs. So we'll need to have meta-tags,
+    like XXXtag1XXX to search for. Then, in pre-processing, we'll bump those to
+    their own <span>
+

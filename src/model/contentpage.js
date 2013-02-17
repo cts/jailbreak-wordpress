@@ -17,13 +17,13 @@ Jailbreak.ContentPage = function() {
 
 Jailbreak.ContentPage.prototype.reset = function() {
   this.name = null;
-  this.url = null;
+  this.path = null;
 };
 
 Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
   this.reset();
-  if ((typeof json.path != "undefined") && (contentMap.domain !== null)) {
-    this.url = contentMap.domain + json.path;
+  if (typeof json.path != "undefined") {
+    this.path = json.path;
   }
   if (typeof json.name != "undefined") {
     this.name = json.name;

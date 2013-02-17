@@ -9,7 +9,7 @@ Jailbreak.Pipeline.FetchAssets = function(opts) {
 
 };
 
-Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
+Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme, pipeline) {
   // http-agent and jsdom are useful for scraping
   // see:
   // https://gist.github.com/DTrejo/790580
@@ -25,7 +25,8 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
   //   write mockup HTML
   //   write CSS files
   //   write IMG files ...etc
-  
+
+  var self = this;
   
   var fetch = function() {
     var scrapeLink = function(link, mapping) {
@@ -33,7 +34,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
       request(link, function (error, response, body) {
         if (!error && response.statusCode == 200) {
         mapping[link]=body;
-        //Jailbreak.Pipeline.log(this, "mapping: " + mapping[link]);
+        //Jailbreak.Pipeline.log(self, "mapping: " + mapping[link]);
         }
       });
     };
@@ -64,15 +65,15 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme) {
 
   setTimeout(fetch,2000);
   var print = function() {
-    Jailbreak.Pipeline.log(this,  "see this at end"); 
+    Jailbreak.Pipeline.log(self,  "see this at end"); 
     for (var key in theme.data.stylesheets) {
       if(theme.data.stylesheets.hasOwnProperty(key)){
-      Jailbreak.Pipeline.log(this, key); 
+      Jailbreak.Pipeline.log(self, key); 
       }
     }
   };
   
   setTimeout(print,4000);
   // Return a status object
-  return { success: true };
+  pipeline.advance(self, theme, { success: true });
 };

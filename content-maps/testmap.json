@@ -1,6 +1,6 @@
 {
   "name":"Test map. Just to load some URLs",
-  "domain":"http://blog.flickr.net",
+  "domain":"blog.flickr.net",
   "pages":[
     {
       "name":"index",

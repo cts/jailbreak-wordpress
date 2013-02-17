@@ -7,6 +7,6 @@ Jailbreak.Pipeline.FixAssets = function(theme, opts) {
   this.name = "Fix Assets";
 };
 
-Jailbreak.Pipeline.FixAssets.prototype.run = function(theme) {
-  return { success: true };
+Jailbreak.Pipeline.FixAssets.prototype.run = function(theme, pipeline) {
+  pipeline.advance(this, theme, { success: true });
 };

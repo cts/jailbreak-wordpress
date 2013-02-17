@@ -12,12 +12,24 @@ Jailbreak.Pipeline.Pipeline = function() {
 };
 
 Jailbreak.Pipeline.Pipeline.prototype.run = function(theme) {
-  var looksGood = true;
-  for (var i = 0; (looksGood && (i < this.stages.length)); i++) {
-    Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[i].name);
-    var result = this.stages[i].run(theme);
-    looksGood = looksGood && result.success;
-    theme.data.pipelineStatus[this.stages[i].name] = result;
-    theme.saveToFile();
+  Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[0].name);
+  this.stages[0].run(theme, this);
+};
+
+Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
+  theme.data.pipelineStatus[stage.name] = result;
+  theme.saveToFile();
+  if (result.success) {
+    var nextStage = _.indexOf(this.stages, stage) + 1;
+    if (nextStage == -1) {
+      Jailbreak.Pipeline.log(this, "Error: can't figure out where I am");
+    } else if (nextStage < this.stages.length) {
+      Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[nextStage].name);
+      this.stages[nextStage].run(theme, this);
+    } else {
+      Jailbreak.Pipeline.log(this, "Pipeline complete");
+    }
+  } else {
+    Jailbreak.Pipeline.log(this, "Aborting pipeline because of bad result.");
   }
 };
