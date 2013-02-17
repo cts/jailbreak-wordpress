@@ -31,7 +31,9 @@ Jailbreak.Theme = function(name, directory, contentMap) {
     javascripts: {},
 
     // Pipeline name
-    pipelineStatus: {}
+    pipelineStatus: {},
+    
+    images: {}
   };
 
   this.initialize();
