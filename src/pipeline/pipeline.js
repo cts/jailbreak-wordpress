@@ -7,7 +7,8 @@ Jailbreak.Pipeline.Pipeline = function() {
   this.name = "Pipeline";
   this.stages = [
     new Jailbreak.Pipeline.FetchPages(),
-    new Jailbreak.Pipeline.FetchAssets()
+    new Jailbreak.Pipeline.FetchAssets(),
+    new Jailbreak.Pipeline.OutputFiles()
   ];
 };
 
