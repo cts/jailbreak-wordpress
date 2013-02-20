@@ -8,5 +8,14 @@ Jailbreak.Pipeline.FixAssets = function(theme, opts) {
 };
 
 Jailbreak.Pipeline.FixAssets.prototype.run = function(theme, pipeline) {
-  pipeline.advance(this, theme, { success: true });
+var print = function() {
+   Jailbreak.Pipeline.log(self,  "see this at end");
+       for (var key in theme.data.stylesheets) {
+          if(theme.data.stylesheets.hasOwnProperty(key)){
+           Jailbreak.Pipeline.log(self, key);
+            }
+           }
+          };
+print();
+pipeline.advance(this, theme, { success: true });
 };
