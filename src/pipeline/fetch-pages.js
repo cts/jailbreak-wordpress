@@ -34,15 +34,14 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
      }
     //Not sure what the mapping should be
     theme.data.sources[theme.contentMap.pages[count].name]=agent.body;
-    count++;
+   count++;
     agent.next();
   });
   
   agent.addListener('stop', function (err, agent) {
-    // Jailbreak.Pipeline.log(self, "length im middle: " + theme.data.sources.post);
-    //Jailbreak.Pipeline.log(self, "length im middle: " + theme.data.sources.index);
-    pipeline.advance(self, theme, { success: true });
+   setTimeout( function() {pipeline.advance(self, theme, { success: true }); }, 4000);
   });
+
   // Start the agent
   agent.start();
 };
