@@ -59,21 +59,9 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme, pipeline) {
         mapData(theme.data.sources[x]);
       }
     }
-   setTimeout(function(){pipeline.advance(self, theme, { success: true });}, 2000);
   };
 
 
-  setTimeout(this.fetch,2000);
-  var print = function() {
-    Jailbreak.Pipeline.log(self,  "see this at end"); 
-    for (var key in theme.data.stylesheets) {
-      if(theme.data.stylesheets.hasOwnProperty(key)){
-      Jailbreak.Pipeline.log(self, key); 
-      }
-    }
-  };
-  
-//setTimeout(this.print,4000);
-  // Return a status object
-//  pipeline.advance(self, theme, { success: true });
+  setTimeout(self.fetch,2000);
+  setTimeout(function(){pipeline.advance(self, theme, { success: true });}, 4000);
 };

@@ -12,6 +12,12 @@ Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
   /*
    * Source Files
    */
+   Jailbreak.Pipeline.log(self,  "Making sure the past state worked"); 
+    for (var key in theme.data.images) {
+      if(theme.data.images.hasOwnProperty(key)){
+      Jailbreak.Pipeline.log(self, "image file: " + key); 
+      }
+    }
   var sourceDirectory = path.join(theme.directory, "sources");
   if (! fs.existsSync(sourceDirectory)) {
     fs.mkdirSync(sourceDirectory);
