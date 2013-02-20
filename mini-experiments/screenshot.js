@@ -49,7 +49,7 @@ var rendered = 0;
 phantom.create(function(browser) {
   for (var index = 0; index < arrayOfUrls.length; index++) {
     var url = arrayOfUrls[index];
-    var file = url.replace(/\//g, ';') + ".png";
+    var file = url.replace(/\//g, ';') + ".pdf";
     renderUrlToFile(url, file, browser, function(url, file) {
       rendered++;
       console.log("Rendered", url, "to", file);
