@@ -12,7 +12,7 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
   var domain = theme.contentMap.domain;
   var paths = [];
   var self = this;
-
+//comment
   for (var i = 0; i < theme.contentMap.pages.length; i++) {
     var pageName = theme.contentMap.pages[i].name;
     var path = theme.contentMap.pages[i].path;
