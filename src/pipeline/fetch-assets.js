@@ -70,7 +70,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme, pipeline) {
   for (var x in theme.data.sources) {
     if(theme.data.sources.hasOwnProperty(x)){
       mapData(theme.data.sources[x]);
-     }
-   }
+    }
+  }
   setTimeout( function() {pipeline.advance(self, theme, { success: true }); }, 8000);
 };
