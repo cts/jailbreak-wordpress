@@ -43,6 +43,8 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
   
   agent.addListener('stop', function (err, agent) {
    //console.log("stop called");
+
+   //TODO(eob): Is this timeout needed?
    setTimeout( function() {pipeline.advance(self, theme, { success: true }); }, 4000);
   });
 
