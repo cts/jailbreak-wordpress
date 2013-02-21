@@ -231,15 +231,18 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
      }
     //Not sure what the mapping should be
     theme.data.sources[theme.contentMap.pages[count].name]=agent.body;
-    count++;
+    console.log("theme.data.sources set with length",
+                theme.data.sources[theme.contentMap.pages[count].name].length,
+                agent.body.length);
+   count++;
     agent.next();
   });
   
   agent.addListener('stop', function (err, agent) {
-    // Jailbreak.Pipeline.log(self, "length im middle: " + theme.data.sources.post);
-    //Jailbreak.Pipeline.log(self, "length im middle: " + theme.data.sources.index);
-    pipeline.advance(self, theme, { success: true });
+   console.log("stop called");
+   setTimeout( function() {pipeline.advance(self, theme, { success: true }); }, 4000);
   });
+
   // Start the agent
   agent.start();
 };
@@ -274,54 +277,51 @@ Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme, pipeline) {
 
   var self = this;
   
-  var fetch = function() {
-    var scrapeLink = function(link, mapping) {
-      var request = require('request');
-      request(link, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-        mapping[link]=body;
-        //Jailbreak.Pipeline.log(self, "mapping: " + mapping[link]);
+  var scrapeLink = function(link, mapping) {
+    if (link.substring(0,2)!="//") {
+       var request = require('request');
+       request({uri:link}, function (error, response, body) {
+         if (!error && response.statusCode == 200) {
+           if (body) {
+             mapping[link]=body;
+           }
+          } else {
+            Jailbreak.Pipeline.log(self, "error " + e);
+            pipeline.advance(self, theme, {success:false});
         }
-      });
-    };
-    
-    var mapData=function(html) {
-      var jsdom = require('jsdom').jsdom;
-      var window =jsdom(html).createWindow();
-      var $ = require('jquery').create(window);
-    
-      $('img').map(function() { theme.data.images[this.src]=true; });
-      $("link[type*=css]").map(function() { scrapeLink(this.href, theme.data.stylesheets);});
-      $("script[type*=javascript]").map(function() { 
-        if (this.src) {
-          scrapeLink(this.src, theme.data.javascripts);
-        }
-      });
-    };
-    
-
-    for (var x in theme.data.sources) {
-      if(theme.data.sources.hasOwnProperty(x)){
-        mapData(theme.data.sources[x]);
-      }
-    }
-   
-  };
-
-
-  setTimeout(fetch,2000);
-  var print = function() {
-    Jailbreak.Pipeline.log(self,  "see this at end"); 
-    for (var key in theme.data.stylesheets) {
-      if(theme.data.stylesheets.hasOwnProperty(key)){
-      Jailbreak.Pipeline.log(self, key); 
-      }
+       });
     }
   };
-  
-  setTimeout(print,4000);
-  // Return a status object
-  pipeline.advance(self, theme, { success: true });
+
+  var mapData=function(html) {      
+    var jsdom = require('jsdom');
+    jsdom.env({
+      html: html,
+      scripts: ["http://code.jquery.com/jquery.js"],
+      done: function (errors, window) {
+        var $ = window.$;
+        $('img').map(function() {theme.data.images[this.src]=true; });
+        $("link[type*=css]").map(function() { 
+          if (this.href) {
+            scrapeLink(this.href, theme.data.stylesheets);
+          }
+        });
+        $("script[type*=javascript]").map(function() { 
+           if (this.src) {
+             scrapeLink(this.src, theme.data.javascripts);
+             }
+        });
+      }
+    });
+                              
+  };
+    
+  for (var x in theme.data.sources) {
+    if(theme.data.sources.hasOwnProperty(x)){
+      mapData(theme.data.sources[x]);
+     }
+   }
+  setTimeout( function() {pipeline.advance(self, theme, { success: true }); }, 8000);
 };
 
 /**
@@ -334,7 +334,16 @@ Jailbreak.Pipeline.FixAssets = function(theme, opts) {
 };
 
 Jailbreak.Pipeline.FixAssets.prototype.run = function(theme, pipeline) {
-  pipeline.advance(this, theme, { success: true });
+var print = function() {
+   Jailbreak.Pipeline.log(self,  "see this at end");
+       for (var key in theme.data.stylesheets) {
+          if(theme.data.stylesheets.hasOwnProperty(key)){
+           Jailbreak.Pipeline.log(self, key);
+            }
+           }
+          };
+print();
+pipeline.advance(this, theme, { success: true });
 };
 
 /*
@@ -351,7 +360,8 @@ Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
   /*
    * Source Files
    */
-  var sourceDirectory = path.join(theme.directory, "sources");
+ pipeline.printTheme(theme);
+ var sourceDirectory = path.join(theme.directory, "sources");
   if (! fs.existsSync(sourceDirectory)) {
     fs.mkdirSync(sourceDirectory);
   }
@@ -387,6 +397,44 @@ Jailbreak.Pipeline.Pipeline = function() {
 Jailbreak.Pipeline.Pipeline.prototype.run = function(theme) {
   Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[0].name);
   this.stages[0].run(theme, this);
+};
+
+Jailbreak.Pipeline.Pipeline.prototype.printTheme = function(theme) {
+ Jailbreak.Pipeline.log(this, "Printing keys from sources");
+  for (var source in theme.data.sources) {
+    if(theme.data.sources.hasOwnProperty(source)){
+      Jailbreak.Pipeline.log(this, "sources file: " + source);
+    }
+  }
+ Jailbreak.Pipeline.log(this, "Printing keys from images");
+  for (var img in theme.data.images) {
+    if(theme.data.images.hasOwnProperty(img)){
+      Jailbreak.Pipeline.log(this, "image  file: " + img);
+    }
+  }
+ Jailbreak.Pipeline.log(this, "Printing keys from javascripts");
+  for (var j in theme.data.javascripts) {
+    if(theme.data.javascripts.hasOwnProperty(j)){
+      Jailbreak.Pipeline.log(this, "javascript file: " + j);
+    }
+  }
+
+ Jailbreak.Pipeline.log(this, "Printing keys from stylesheets");
+  for (var key in theme.data.stylesheets) {
+    if(theme.data.stylesheets.hasOwnProperty(key)){
+      Jailbreak.Pipeline.log(this, "stylesheet file: " + key);
+    }
+  }
+
+};
+
+Jailbreak.Pipeline.Pipeline.prototype.printData = function(data) {
+ Jailbreak.Pipeline.log(this, "printing data from " + data);
+ for (var key in data) {
+    if (data.hasOwnProperty(key)) {
+      Jailbreak.Pipeline.log(this, key);
+    }
+  }
 };
 
 Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
