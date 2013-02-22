@@ -11,22 +11,35 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
   if (! fs.existsSync(directory)) {
     fs.mkdirSync(directory);
   }
-  _.each(files, function(html, name) {
-    Jailbreak.Pipeline.log(this, "Writing sources/" + name + ".html");
-    try {
-      var filename = path.join(directory, name + ".html");
-      fs.writeFileSync(filename, html, "utf8");
-    } catch (e) {
-      console.log("Could not write file", filename, e);
+  _.each(files, function(obj, url) {
+    var data = "";
+    var filename = "";
+
+    if (typeof obj == "object") {
+      filename = obj.filename;
+      data = obj.date;
+    } else {
+      filename = url + ".html";
+      data = obj;
     }
-  });
+
+    try {
+      var fullfilename = path.join(directory, filename);
+      Jailbreak.Pipeline.log(this, "Writing " + fullfilename);
+      fs.writeFileSync(fullfilename, data, "utf8");
+    } catch (e) {
+      console.log("Could not write file", fullfilename, e);
+    }
+
+  }, this);
 };
 
 Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
   //pipeline.printTheme(theme);
   this.writeFiles(theme, theme.data.sources, "sources");
-  //this.writeFiles(theme, theme.data.images, "images");
-  //this.writeFiles(theme, theme.data.javascripts, "javascripts");
-  //this.writeFiles(theme, theme.data.stylesheets, "stylesheets");
+  this.writeFiles(theme, theme.data.fixedSources, "fixedSources");
+  this.writeFiles(theme, theme.data.images, "images");
+  this.writeFiles(theme, theme.data.javascripts, "javascripts");
+  this.writeFiles(theme, theme.data.stylesheets, "stylesheets");
   pipeline.advance(this, theme, { success: true });
 };

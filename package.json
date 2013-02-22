@@ -46,7 +46,8 @@
     "jquery": "*",
     "util": "*",
     "url": "*",
-    "http-agent": "*"
+    "http-agent": "*",
+    "jsuri": "*"
   },
   "devDependencies": {
   },
