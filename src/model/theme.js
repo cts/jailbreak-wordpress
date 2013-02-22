@@ -17,6 +17,10 @@ Jailbreak.Theme = function(name, directory, contentMap) {
     // HTML Sources representing the theme
     // Scraped from Wordpress
     sources: {},
+
+    // Sources with any asset urls fixex to relative paths.
+    // This is done in the fetch-assets pipeline stage.
+    fixedSources: {},
  
     // HTML Mockups representing the theme
     mockups: {},

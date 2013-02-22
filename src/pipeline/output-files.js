@@ -6,28 +6,40 @@ Jailbreak.Pipeline.OutputFiles = function(theme, opts) {
   this.self = this;
 };
 
-Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
-  var self = this;
-
-  /*
-   * Source Files
-   */
- pipeline.printTheme(theme);
- var sourceDirectory = path.join(theme.directory, "sources");
-  if (! fs.existsSync(sourceDirectory)) {
-    fs.mkdirSync(sourceDirectory);
+Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toDir) {
+ var directory = path.join(theme.directory, toDir);
+  if (! fs.existsSync(directory)) {
+    fs.mkdirSync(directory);
   }
-  _.each(theme.data.sources, function(html, name) {
-    Jailbreak.Pipeline.log(self, "Writing sources/" + name + ".html");
-    try {
-      var filename = path.join(sourceDirectory, name + ".html");
-      fs.writeFileSync(filename, html, "utf8");
-    } catch (e) {
-      console.log("Could not write file", filename, e);
+  _.each(files, function(obj, url) {
+    var data = "";
+    var filename = "";
+
+    if (typeof obj == "object") {
+      filename = obj.filename;
+      data = obj.date;
+    } else {
+      filename = url + ".html";
+      data = obj;
     }
-  });
 
-  // TODO(eob): Write all other assets.
+    try {
+      var fullfilename = path.join(directory, filename);
+      Jailbreak.Pipeline.log(this, "Writing " + fullfilename);
+      fs.writeFileSync(fullfilename, data, "utf8");
+    } catch (e) {
+      console.log("Could not write file", fullfilename, e);
+    }
 
-  pipeline.advance(self, theme, { success: true });
+  }, this);
+};
+
+Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
+  //pipeline.printTheme(theme);
+  this.writeFiles(theme, theme.data.sources, "sources");
+  this.writeFiles(theme, theme.data.fixedSources, "fixedSources");
+  this.writeFiles(theme, theme.data.images, "images");
+  this.writeFiles(theme, theme.data.javascripts, "javascripts");
+  this.writeFiles(theme, theme.data.stylesheets, "stylesheets");
+  pipeline.advance(this, theme, { success: true });
 };
