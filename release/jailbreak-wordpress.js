@@ -231,16 +231,15 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
      }
     //Not sure what the mapping should be
     theme.data.sources[theme.contentMap.pages[count].name]=agent.body;
-    console.log("theme.data.sources set with length",
-                theme.data.sources[theme.contentMap.pages[count].name].length,
-                agent.body.length);
+    //console.log("theme.data.sources set with length",
+    //            theme.data.sources[theme.contentMap.pages[count].name].length,
+    //            agent.body.length);
    count++;
     agent.next();
   });
   
   agent.addListener('stop', function (err, agent) {
-   console.log("stop called");
-   setTimeout( function() {pipeline.advance(self, theme, { success: true }); }, 4000);
+   pipeline.advance(self, theme, { success: true });
   });
 
   // Start the agent
@@ -255,73 +254,113 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
 
 Jailbreak.Pipeline.FetchAssets = function(opts) {
   this.name = "Fetch Assets";
-
+  this.pageQueue = {};
+  this.assetQueue = {};
 };
 
 Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme, pipeline) {
-  // http-agent and jsdom are useful for scraping
-  // see:
-  // https://gist.github.com/DTrejo/790580
+  this.queuePages(theme, pipeline);
+};
 
-  // for each page in theme.sources
-  // find all img, css, and js links
-  // scrape them and put then in the right slot in theme object
-  // (you may need to create a new slot, e.g., for image data)
+Jailbreak.Pipeline.FetchAssets.prototype.queuePages = function(theme, pipeline) {
+  _.each(theme.data.sources, function(html, name) {
+    Jailbreak.Pipeline.log(this, "Queueing page asset fetch for: " + name);
+    this.pageQueue[name] = html;
+  }, this);
 
-  // goal, by the way, is that the final stage in pipline will use 
-  // the theme object to WRITE a new folder to disk containing the CTS theme.
-  // e.g.:
-  //   write mockup HTML
-  //   write CSS files
-  //   write IMG files ...etc
+  // Advance to the next stage of the pipeline
+  this.queueAssets(theme, pipeline);
+};
 
+Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline) {
   var self = this;
-  
-  var scrapeLink = function(link, mapping) {
-    if (link.substring(0,2)!="//") {
-       var request = require('request');
-       request({uri:link}, function (error, response, body) {
-         if (!error && response.statusCode == 200) {
-           if (body) {
-             mapping[link]=body;
-           }
-          } else {
-            Jailbreak.Pipeline.log(self, "error " + e);
-            pipeline.advance(self, theme, {success:false});
-        }
-       });
+
+  var fixUrl = function(url) {
+    if (url.substring(0,2) == "//") {
+      url = "http:" + url;
     }
+    return url;
   };
 
-  var mapData=function(html) {      
+  _.each(_.clone(this.pageQueue), function(html, name) {
     var jsdom = require('jsdom');
     jsdom.env({
       html: html,
       scripts: ["http://code.jquery.com/jquery.js"],
       done: function (errors, window) {
+        console.log(errors);
         var $ = window.$;
-        $('img').map(function() {theme.data.images[this.src]=true; });
+
+        $('img').map(function() {
+          Jailbreak.Pipeline.log(self, "Queueing asset fetch for: " + name + ": " + this.src);
+          self.assetQueue[fixUrl(this.src)] = { type: 'img' };
+        });
+
         $("link[type*=css]").map(function() { 
           if (this.href) {
-            scrapeLink(this.href, theme.data.stylesheets);
+          Jailbreak.Pipeline.log(self, "Queueing asset fetch for: " + name + ": " + this.href);
+            self.assetQueue[fixUrl(this.href)] = { type: 'css' };
           }
         });
+
         $("script[type*=javascript]").map(function() { 
            if (this.src) {
-             scrapeLink(this.src, theme.data.javascripts);
-             }
+             Jailbreak.Pipeline.log(self, "Queueing asset fetch for: " + name + ": " + this.src);
+             self.assetQueue[fixUrl(this.src)] = { type: 'js' };
+           }
         });
+
+        // Now remove this name from the object
+        delete self.pageQueue[name];
+
+        if (_.keys(self.pageQueue).length === 0) {
+          self.fetchAssets(theme, pipeline);
+        }
+      } // done
+    });
+  }, this);
+};
+
+Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline) {
+  var self = this;
+
+  var maybeFinish = function(url) {
+    // Now remove this name from the object
+    delete self.assetQueue[url];
+
+    if (_.keys(self.assetQueue).length === 0) {
+      // Finish for real.
+      Jailbreak.Pipeline.log(self, "Finished fetching assets!");
+      pipeline.advance(self, theme, { success: true });
+    } 
+  };
+
+  _.each(_.clone(this.assetQueue), function(info, url) {
+    var request = require('request');
+    request({uri:url}, function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        if (body) {
+          Jailbreak.Pipeline.log(self, "Fetched " + url);
+          if (info.type == "js") {
+            theme.data.javascripts[url] = body;
+          } else if (info.type == "css") {
+            theme.data.stylesheets[url] = body;
+          } else if (info.type == "img") {
+            theme.data.images[url] = body;
+          } else {
+            Jailbreak.Pipeline.log(self, "Warning: unknown content type: " + info.type);
+          }
+          maybeFinish(url);
+        } else {
+          theme.data.images[url] = "";
+          maybeFinish(url);
+        }
+      } else {
+        Jailbreak.Pipeline.log(self, "error " + e);
+        pipeline.advance(self, theme, {success:false});
       }
     });
-                              
-  };
-    
-  for (var x in theme.data.sources) {
-    if(theme.data.sources.hasOwnProperty(x)){
-      mapData(theme.data.sources[x]);
-     }
-   }
-  setTimeout( function() {pipeline.advance(self, theme, { success: true }); }, 8000);
+  }, this);
 };
 
 /**
@@ -354,30 +393,29 @@ Jailbreak.Pipeline.OutputFiles = function(theme, opts) {
   this.self = this;
 };
 
-Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
-  var self = this;
-
-  /*
-   * Source Files
-   */
- pipeline.printTheme(theme);
- var sourceDirectory = path.join(theme.directory, "sources");
-  if (! fs.existsSync(sourceDirectory)) {
-    fs.mkdirSync(sourceDirectory);
+Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toDir) {
+ var directory = path.join(theme.directory, toDir);
+  if (! fs.existsSync(directory)) {
+    fs.mkdirSync(directory);
   }
-  _.each(theme.data.sources, function(html, name) {
-    Jailbreak.Pipeline.log(self, "Writing sources/" + name + ".html");
+  _.each(files, function(html, name) {
+    Jailbreak.Pipeline.log(this, "Writing sources/" + name + ".html");
     try {
-      var filename = path.join(sourceDirectory, name + ".html");
+      var filename = path.join(directory, name + ".html");
       fs.writeFileSync(filename, html, "utf8");
     } catch (e) {
       console.log("Could not write file", filename, e);
     }
   });
+};
 
-  // TODO(eob): Write all other assets.
-
-  pipeline.advance(self, theme, { success: true });
+Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
+  //pipeline.printTheme(theme);
+  this.writeFiles(theme, theme.data.sources, "sources");
+  this.writeFiles(theme, theme.data.images, "images");
+  this.writeFiles(theme, theme.data.javascripts, "javascripts");
+  this.writeFiles(theme, theme.data.stylesheets, "stylesheets");
+  pipeline.advance(this, theme, { success: true });
 };
 
 /**
