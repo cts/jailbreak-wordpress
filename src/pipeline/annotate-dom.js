@@ -8,6 +8,7 @@
 Jailbreak.Pipeline.AnnotateDom = function(opts) {
   this.name = "Annotate Dom";
   this.self = this;
+  this.pageDataQueue = {};
 
 };
 
@@ -15,30 +16,29 @@ Jailbreak.Pipeline.AnnotateDom.prototype.run = function(theme, pipeline) {
   var self = this;
   for (var i = 0; i < theme.contentMap.pages.length; i++) {
     var page = theme.contentMap.pages[i];
-     self.walkPageDom(theme, pipeline, page);
+    var data = page.data;
+    if (data) {
+      for (var x=0; x < _.keys(data).length; x++ ){
+        var k = _.keys(data)[x];
+        theme.data.newClasses[k] = null;        
+      }
+     this.pageDataQueue[page.name] = data;
+    }
   }
-  setTimeout(function() {pipeline.advance(self, theme, {success:true}); }, 8000);
+  this.queuePages(theme, pipeline);
 };
 
-Jailbreak.Pipeline.AnnotateDom.prototype.walkPageDom = function(theme, pipeline, page)  {
+Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
   var self = this;
-  //Jailbreak.Pipeline.log(self, "html " + theme.data.sources[page.name]);
 
-  var data = page.data;
-  if (data) {
-    var html = theme.data.sources[page.name];
-    for (var x=0; x < _.keys(data).length; x++ ){
-      var k = _.keys(data)[x];
-      theme.data.newClasses[k] = null;        
-    }
-    var new_html = html;
-    if (html) {
+  _.each(_.clone(this.pageDataQueue), function(data, name) {
+    var html = theme.data.sources[name];
     var jsdom = require('jsdom');
     jsdom.env({
       html: html,
       scripts: ["http://code.jquery.com/jquery.js"],
       done: function (errors, window) {
-        console.log(errors);
+         console.log(errors);
         var $ = window.$;
         Jailbreak.Pipeline.log(self, "html length first: " + window.document.innerHTML.length); 
 
@@ -65,14 +65,15 @@ Jailbreak.Pipeline.AnnotateDom.prototype.walkPageDom = function(theme, pipeline,
              }
           });
 
-        theme.data.mockups[page.name] = window.document.innerHTML;
-        
-        } 
-      });
-    }
-  }
+        theme.data.mockups[name] = window.document.innerHTML;
 
-}; //End of walk page dom
+        // Now remove this name from the object
+        delete self.pageDataQueue[name];
 
-
-
+        if (_.keys(self.pageDataQueue).length === 0) {
+          pipeline.advance(self, theme, {success:true});
+        }
+      } // done
+    });
+  }, this);
+};
