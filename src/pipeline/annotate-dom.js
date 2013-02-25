@@ -17,6 +17,7 @@ Jailbreak.Pipeline.AnnotateDom.prototype.run = function(theme, pipeline) {
     var page = theme.contentMap.pages[i];
      self.walkPageDom(theme, pipeline, page);
   }
+  setTimeout(function() {pipeline.advance(self, theme, {success:true}); }, 8000);
 };
 
 Jailbreak.Pipeline.AnnotateDom.prototype.walkPageDom = function(theme, pipeline, page)  {
@@ -65,6 +66,7 @@ Jailbreak.Pipeline.AnnotateDom.prototype.walkPageDom = function(theme, pipeline,
           });
 
         theme.data.mockups[page.name] = window.document.innerHTML;
+        
         } 
       });
     }

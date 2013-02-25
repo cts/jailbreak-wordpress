@@ -40,6 +40,7 @@ Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
   this.writeFiles(theme, theme.data.fixedSources, "fixedSources");
   this.writeFiles(theme, theme.data.images, "images");
   this.writeFiles(theme, theme.data.javascripts, "javascripts");
+  this.writeFiles(theme, theme.data.mockups, "mockups");
   this.writeFiles(theme, theme.data.stylesheets, "stylesheets");
   pipeline.advance(this, theme, { success: true });
 };
