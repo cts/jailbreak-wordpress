@@ -18,6 +18,7 @@ Jailbreak.ContentPage = function() {
 Jailbreak.ContentPage.prototype.reset = function() {
   this.name = null;
   this.path = null;
+  this.data = null;
 };
 
 Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
@@ -27,6 +28,9 @@ Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
   }
   if (typeof json.name != "undefined") {
     this.name = json.name;
+  }
+    if (typeof json.data != "undefined") {
+    this.data= json.data;
   }
 };
 

@@ -32,6 +32,7 @@ module.exports = function(grunt) {
           "src/pipeline/fetch-pages.js",
           "src/pipeline/fetch-assets.js",
           "src/pipeline/fix-assets.js",
+          "src/pipeline/annotate-dom.js",
           "src/pipeline/output-files.js",
           "src/pipeline/pipeline.js",
           "src/fragments/postfix._js",
