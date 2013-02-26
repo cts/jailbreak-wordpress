@@ -68,12 +68,7 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
           });
 
         theme.data.mockups[name] = window.document.innerHTML;
- for (var x=0; x < _.keys(theme.data.newClasses[name]).length; x++ ){
-      var k = _.keys(theme.data.newClasses[name])[x];
-       Jailbreak.Pipeline.log(self, "classes: " + theme.data.newClasses[name][k]);       
-    }
 
-        // Now remove this name from the object
         delete self.pageDataQueue[name];
 
         if (_.keys(self.pageDataQueue).length === 0) {
