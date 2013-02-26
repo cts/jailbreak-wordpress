@@ -21,7 +21,7 @@ module.exports = function(grunt) {
               " */\n"
     },
     concat: {
-      dist : {
+      jailbreak: {
         src : [
           "<banner>",
           "src/fragments/prefix._js",
@@ -38,6 +38,15 @@ module.exports = function(grunt) {
           "src/jailbreak-wordpress.js"
         ],
         dest : "release/jailbreak-wordpress.js"
+      },
+      scraper: {
+        src: [
+          "src/fragments/prefix._js",
+          "src/scraper/wordpress.js",
+          "src/fragments/postfix._js",
+          "src/scrape-themes.js"
+        ],
+        dest: "release/scrape-themes.js"
       }
     },
     lint: {
