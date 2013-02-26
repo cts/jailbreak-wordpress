@@ -17,12 +17,14 @@ Jailbreak.Pipeline.AnnotateDom.prototype.run = function(theme, pipeline) {
   for (var i = 0; i < theme.contentMap.pages.length; i++) {
     var page = theme.contentMap.pages[i];
     var data = page.data;
+    var newClasses = {};
     if (data) {
       for (var x=0; x < _.keys(data).length; x++ ){
         var k = _.keys(data)[x];
-        theme.data.newClasses[k] = null;        
+        newClasses[k] = null;        
       }
      this.pageDataQueue[page.name] = data;
+     theme.data.newClasses[page.name] = newClasses;
     }
   }
   this.queuePages(theme, pipeline);
@@ -52,13 +54,13 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
                if (this.innerHTML===v) {
                  this.className = k;
                  Jailbreak.Pipeline.log(self, "found in html: " + this.innerHTML+ " className: " + this.className + ", key: " + k);
-                 theme.data.newClasses[k] = "innerHTML";
+                 theme.data.newClasses[name][k] = "innerHTML";
                }
                for (var g=0; g <this.attributes.length; g++ ) {
                  if (this.attributes[g].value ==v) {
                  this.className =k;
                  Jailbreak.Pipeline.log(self, "found inattributes val: " + this.attributes[g].value+ " attr name: " + this.attributes[g].name + ", key: " + k + " this.className: "  + this.className);
-                 theme.data.newClasses[k] = this.attributes[g].name;
+                 theme.data.newClasses[name][k] = this.attributes[g].name;
                  
                  }
               } 
@@ -66,6 +68,10 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
           });
 
         theme.data.mockups[name] = window.document.innerHTML;
+ for (var x=0; x < _.keys(theme.data.newClasses[name]).length; x++ ){
+      var k = _.keys(theme.data.newClasses[name])[x];
+       Jailbreak.Pipeline.log(self, "classes: " + theme.data.newClasses[name][k]);       
+    }
 
         // Now remove this name from the object
         delete self.pageDataQueue[name];
