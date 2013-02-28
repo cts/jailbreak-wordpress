@@ -8,6 +8,7 @@ Jailbreak.Pipeline.Pipeline = function() {
   this.stages = [
     new Jailbreak.Pipeline.FetchPages(),
     new Jailbreak.Pipeline.FetchAssets(),
+    new Jailbreak.Pipeline.AnnotateDom(),
     new Jailbreak.Pipeline.OutputFiles()
   ];
 };

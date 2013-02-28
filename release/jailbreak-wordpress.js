@@ -54,7 +54,9 @@ Jailbreak.Theme = function(name, directory, contentMap) {
     // Pipeline name
     pipelineStatus: {},
     
-    images: {}
+    images: {},
+    
+    newClasses : {}
   };
 
   this.initialize();
@@ -106,6 +108,7 @@ Jailbreak.ContentPage = function() {
 Jailbreak.ContentPage.prototype.reset = function() {
   this.name = null;
   this.path = null;
+  this.data = null;
 };
 
 Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
@@ -115,6 +118,9 @@ Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
   }
   if (typeof json.name != "undefined") {
     this.name = json.name;
+  }
+    if (typeof json.data != "undefined") {
+    this.data= json.data;
   }
 };
 
@@ -213,7 +219,7 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
   var domain = theme.contentMap.domain;
   var paths = [];
   var self = this;
-
+//comment
   for (var i = 0; i < theme.contentMap.pages.length; i++) {
     var pageName = theme.contentMap.pages[i].name;
     var path = theme.contentMap.pages[i].path;
@@ -402,27 +408,85 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
 };
 
 /**
- * Takes a theme object with assets already fetched and re-writes
- * the HTML so that it references local project structure.
- */
+ * Walks through each node and attribute in the DOM of all pages in sources and, * applies the appropirate class name.
+ * Saves this modified HTML (with the classes added) to this.data.mockups[name]. * in the theme object which can be used as a mockup.
+ * For every class we added, keep a data structure in theme.data that records
+ * we've done this and whether it was an attribute or the innerHTML. This 
+*/
 
-Jailbreak.Pipeline.FixAssets = function(theme, opts) {
-  this.name = "Fix Assets";
+Jailbreak.Pipeline.AnnotateDom = function(opts) {
+  this.name = "Annotate Dom";
+  this.self = this;
+  this.pageDataQueue = {};
+
 };
 
-Jailbreak.Pipeline.FixAssets.prototype.run = function(theme, pipeline) {
-var print = function() {
-   Jailbreak.Pipeline.log(self,  "see this at end");
-       for (var key in theme.data.stylesheets) {
-          if(theme.data.stylesheets.hasOwnProperty(key)){
-           Jailbreak.Pipeline.log(self, key);
-            }
-           }
-          };
-print();
-pipeline.advance(this, theme, { success: true });
+Jailbreak.Pipeline.AnnotateDom.prototype.run = function(theme, pipeline) {
+  var self = this;
+  for (var i = 0; i < theme.contentMap.pages.length; i++) {
+    var page = theme.contentMap.pages[i];
+    var data = page.data;
+    var newClasses = {};
+    if (data) {
+      for (var x=0; x < _.keys(data).length; x++ ){
+        var k = _.keys(data)[x];
+        newClasses[k] = null;        
+      }
+     this.pageDataQueue[page.name] = data;
+     theme.data.newClasses[page.name] = newClasses;
+    }
+  }
+  this.queuePages(theme, pipeline);
 };
 
+Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
+  var self = this;
+
+  _.each(_.clone(this.pageDataQueue), function(data, name) {
+    var html = theme.data.sources[name];
+    var jsdom = require('jsdom');
+    jsdom.env({
+      html: html,
+      scripts: ["http://code.jquery.com/jquery.js"],
+      done: function (errors, window) {
+         console.log(errors);
+        var $ = window.$;
+        Jailbreak.Pipeline.log(self, "html length first: " + window.document.innerHTML.length); 
+
+        var childNodes = $("*").filter(function(index) { 
+          var isLeaf = $(this).children().length <= 1;
+          return isLeaf;})
+          .map(function() { 
+            for (var x=0; x < _.pairs(data).length; x++ ){
+              var k = _.pairs(data)[x][0];
+              var v = _.pairs(data)[x][1];
+               if (this.innerHTML===v) {
+                 this.className = k;
+                 Jailbreak.Pipeline.log(self, "found in html: " + this.innerHTML+ " className: " + this.className + ", key: " + k);
+                 theme.data.newClasses[name][k] = "innerHTML";
+               }
+               for (var g=0; g <this.attributes.length; g++ ) {
+                 if (this.attributes[g].value ==v) {
+                 this.className =k;
+                 Jailbreak.Pipeline.log(self, "found inattributes val: " + this.attributes[g].value+ " attr name: " + this.attributes[g].name + ", key: " + k + " this.className: "  + this.className);
+                 theme.data.newClasses[name][k] = this.attributes[g].name;
+                 
+                 }
+              } 
+             }
+          });
+
+        theme.data.mockups[name] = window.document.innerHTML;
+
+        delete self.pageDataQueue[name];
+
+        if (_.keys(self.pageDataQueue).length === 0) {
+          pipeline.advance(self, theme, {success:true});
+        }
+      } // done
+    });
+  }, this);
+};
 /*
  * Outputs the files from the theme object at the very end
  */
@@ -443,9 +507,12 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
     if (typeof obj == "object") {
       filename = obj.filename;
       data = obj.date;
+     // console.log("is object, filename: " + filename + " , data: " + data);
     } else {
-      filename = url;
+      filename = url + ".html";
       data = obj;
+      //console.log("is not object, url: " + filename);
+     // console.log("is not object, filename: " + filename + " , data: " + data);
     }
 
     try {
@@ -459,13 +526,47 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
   }, this);
 };
 
+Jailbreak.Pipeline.OutputFiles.prototype.writeCTSSheets = function(theme, files, toDir) {
+  var ctsString = function(key, attr) {
+    var rule = "";
+    if (attr==="innerHTML") {
+      rule = "." + key + " { value: " + key + " }";
+    } else if (attr) {
+      rule = "." + key + " { value(@" + attr+ "): " + key + " }";
+    }
+    return rule + "\n";
+ };
+ var directory = path.join(theme.directory, toDir);
+  if (! fs.existsSync(directory)) {
+    fs.mkdirSync(directory);
+  }
+  _.each(files, function(obj, url) {
+    var data = "";
+    var filename = url + ".cts";
+    try {
+      var fullfilename = path.join(directory, filename);
+      Jailbreak.Pipeline.log(this, "Writing " + fullfilename);
+      _.each(obj, function(val, name) {
+        Jailbreak.Pipeline.log(this,"adding rule: " + ctsString(name, val));
+        data+=ctsString(name, val);
+      }, this);
+      fs.writeFileSync(fullfilename, data, "utf8");
+    } catch (e) {
+      console.log("Could not write file", fullfilename, e);
+    }
+  }, this);
+};
+
 Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
+
   //pipeline.printTheme(theme);
   this.writeFiles(theme, theme.data.sources, "sources");
   this.writeFiles(theme, theme.data.fixedSources, "fixedSources");
   this.writeFiles(theme, theme.data.images, "images");
   this.writeFiles(theme, theme.data.javascripts, "javascripts");
+  this.writeFiles(theme, theme.data.mockups, "mockups");
   this.writeFiles(theme, theme.data.stylesheets, "stylesheets");
+  this.writeCTSSheets(theme, theme.data.newClasses, "ctsSheets");
   pipeline.advance(this, theme, { success: true });
 };
 
@@ -479,6 +580,7 @@ Jailbreak.Pipeline.Pipeline = function() {
   this.stages = [
     new Jailbreak.Pipeline.FetchPages(),
     new Jailbreak.Pipeline.FetchAssets(),
+    new Jailbreak.Pipeline.AnnotateDom(),
     new Jailbreak.Pipeline.OutputFiles()
   ];
 };

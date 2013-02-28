@@ -4,11 +4,11 @@
   "pages":[
     {
       "name":"index",
-      "path":"/haystack/blog/"
+      "path":"/haystack/blog/",
       "data": {
         "title": "Haystack Blog",
-        "link": "http://groups.csail.mit.edu/haystack/blog"
-        "subtitle": 'MIT CSAIL Research (<a href="http://haystack.csail.mit.edu/">Group Website</a>)'
+        "link": "http://groups.csail.mit.edu/haystack/blog",
+        "subtitle": "MIT CSAIL Research (<a href=\"http://haystack.csail.mit.edu/\">Group Website</a>)"
       },
       "cts": {
       }
