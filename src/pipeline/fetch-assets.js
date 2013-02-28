@@ -1,7 +1,7 @@
 /**
  * Takes a theme object and downloads all assets (JS, CSS, IMG, etc),
  * placing them into the respective dictionary cache in the Theme
- * object.
+ * object .
  */
 
 Jailbreak.Pipeline.FetchAssets = function(opts) {
