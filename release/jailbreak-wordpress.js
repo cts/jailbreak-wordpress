@@ -259,7 +259,7 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
 /**
  * Takes a theme object and downloads all assets (JS, CSS, IMG, etc),
  * placing them into the respective dictionary cache in the Theme
- * object.
+ * object .
  */
 
 Jailbreak.Pipeline.FetchAssets = function(opts) {
@@ -432,6 +432,7 @@ Jailbreak.Pipeline.AnnotateDom.prototype.run = function(theme, pipeline) {
         var k = _.keys(data)[x];
         newClasses[k] = null;        
       }
+      newClasses.repeats = [];
      this.pageDataQueue[page.name] = data;
      theme.data.newClasses[page.name] = newClasses;
     }
@@ -451,7 +452,6 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
       done: function (errors, window) {
          console.log(errors);
         var $ = window.$;
-        Jailbreak.Pipeline.log(self, "html length first: " + window.document.innerHTML.length); 
 
         var childNodes = $("*").filter(function(index) { 
           var isLeaf = $(this).children().length <= 1;
@@ -460,22 +460,42 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
             for (var x=0; x < _.pairs(data).length; x++ ){
               var k = _.pairs(data)[x][0];
               var v = _.pairs(data)[x][1];
-               if (this.innerHTML===v) {
-                 this.className = k;
-                 Jailbreak.Pipeline.log(self, "found in html: " + this.innerHTML+ " className: " + this.className + ", key: " + k);
-                 theme.data.newClasses[name][k] = "innerHTML";
-               }
-               for (var g=0; g <this.attributes.length; g++ ) {
-                 if (this.attributes[g].value ==v) {
-                 this.className =k;
-                 Jailbreak.Pipeline.log(self, "found inattributes val: " + this.attributes[g].value+ " attr name: " + this.attributes[g].name + ", key: " + k + " this.className: "  + this.className);
-                 theme.data.newClasses[name][k] = this.attributes[g].name;
-                 
-                 }
+              if (this.innerHTML===v) {
+                this.className = k;
+               // Jailbreak.Pipeline.log(self, "found in html: " + this.innerHTML+ " className: " + this.className + ", key: " + k);
+                theme.data.newClasses[name][k] = "innerHTML";
+              }
+              for (var g=0; g <this.attributes.length; g++ ) {
+                if (this.attributes[g].value ==v) {
+                this.className =k;
+               // Jailbreak.Pipeline.log(self, "found inattributes val: " + this.attributes[g].value+ " attr name: " + this.attributes[g].name + ", key: " + k + " this.className: "  + this.className);
+                theme.data.newClasses[name][k] = this.attributes[g].name;            
+                }
               } 
-             }
+            }
           });
-
+    
+        var repeats = data.repeats;
+        if (repeats) {
+          for (var i = 0; i < repeats.length; i++ ) {
+            var repeat = repeats[i];
+            var dict = {};
+            var offset = _.contains(repeat, "offset") ? Number(repeat.offset): 0;
+            var step = _.contains(repeat, "step") ? Number(repeat.step) : 1;
+            $(repeat.selector).addClass(repeat.newClass);
+            dict.name = repeat.newClass;
+            dict.offset = offset;
+            dict.step= step;
+            dict.content = [];
+           for (var l=0; l < _.pairs(repeat.content).length; l++ ){
+            var c  = _.pairs(repeat.content)[l][0];
+            var f  = _.pairs(repeat.content)[l][1];
+            $(repeat.selector).find(f).addClass(c);
+            dict.content.push(c);
+           }
+            theme.data.newClasses[name].repeats.push(dict);
+          }
+        }
         theme.data.mockups[name] = window.document.innerHTML;
 
         delete self.pageDataQueue[name];
@@ -487,6 +507,7 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
     });
   }, this);
 };
+
 /*
  * Outputs the files from the theme object at the very end
  */
@@ -529,12 +550,32 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
 Jailbreak.Pipeline.OutputFiles.prototype.writeCTSSheets = function(theme, files, toDir) {
   var ctsString = function(key, attr) {
     var rule = "";
-    if (attr==="innerHTML") {
-      rule = "." + key + " { value: " + key + " }";
+    if (key==="repeats") {
+       var repeatList = attr;
+       for (var i = 0; i < repeatList.length; i++) {
+         var repeat = repeatList[i];
+         rule += "." + repeat.name + " { \n";
+         rule+="  repeat: " + repeat.name + "\n";
+         rule+= "  repeat-offset: " + repeat.offset + "\n";
+         rule+= "  repeat-step: " + repeat.step + "\n";
+         rule += "}" + "\n";
+         for (var g=0; g < repeat.content.length; g++) {
+            rule += "." + repeat.name + " ." + repeat.content[g] + " { \n";
+            rule += "  value: " + repeat.content[g] + "\n";
+            rule += "} \n";
+         }
+       }
+    } else if (attr==="innerHTML") {
+      rule = "." + key + " { \n";
+      rule+= "  value: " + key + " \n";
+      rule += "} \n";
     } else if (attr) {
-      rule = "." + key + " { value(@" + attr+ "): " + key + " }";
+      rule = "." + key + " { \n";
+      rule += "  value(@" + attr+ "): " + key +" \n";
+      rule+= "} \n";
     }
-    return rule + "\n";
+    console.log("adding rule: " + rule);
+    return rule;
  };
  var directory = path.join(theme.directory, toDir);
   if (! fs.existsSync(directory)) {
@@ -547,7 +588,6 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeCTSSheets = function(theme, files,
       var fullfilename = path.join(directory, filename);
       Jailbreak.Pipeline.log(this, "Writing " + fullfilename);
       _.each(obj, function(val, name) {
-        Jailbreak.Pipeline.log(this,"adding rule: " + ctsString(name, val));
         data+=ctsString(name, val);
       }, this);
       fs.writeFileSync(fullfilename, data, "utf8");
