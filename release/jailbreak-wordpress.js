@@ -480,8 +480,14 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
           for (var i = 0; i < repeats.length; i++ ) {
             var repeat = repeats[i];
             var dict = {};
-            var offset = _.contains(repeat, "offset") ? Number(repeat.offset): 0;
-            var step = _.contains(repeat, "step") ? Number(repeat.step) : 1;
+            var offset = 0;
+            var step = 1;
+            if (repeat.offset) {
+              offset = Number(repeat.offset);
+            }
+            if (repeat.step) {
+              step = Number(repeat.step);
+            }
             $(repeat.selector).addClass(repeat.newClass);
             dict.name = repeat.newClass;
             dict.offset = offset;
