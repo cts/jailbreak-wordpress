@@ -407,8 +407,6 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
   }, this);
 };
 
-<<<<<<< HEAD
-=======
 /**
  * Walks through each node and attribute in the DOM of all pages in sources and, * applies the appropirate class name.
  * Saves this modified HTML (with the classes added) to this.data.mockups[name]. * in the theme object which can be used as a mockup.
@@ -489,7 +487,6 @@ Jailbreak.Pipeline.AnnotateDom.prototype.queuePages= function(theme, pipeline) {
     });
   }, this);
 };
->>>>>>> master
 /*
  * Outputs the files from the theme object at the very end
  */

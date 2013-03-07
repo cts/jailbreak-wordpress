@@ -10,8 +10,12 @@ if (typeof Jailbreak.Scraper == "undefined") {
 }
 
 Jailbreak.Scraper.WordpressOrgScraper = function(workspace) {
+  // This is the workspace directory
   this.workspace = workspace;
-  this.filename = path.join(workspace, scraper + ".json");
+
+  // This is the filename of state that you can save to disk so you can resume scraping later.
+  this.filename = path.join(workspace, "ScrapeData.json");
+
   this.data = {
   };
 };
@@ -19,6 +23,12 @@ Jailbreak.Scraper.WordpressOrgScraper = function(workspace) {
 Jailbreak.Scraper.WordpressOrgScraper.prototype.initialize = function(args) {
   console.log("[Theme] Initializing: ", this.name);
   this.loadFromFile();
+};
+
+Jailbreak.Scraper.WordpressOrgScraper.prototype.scrape = function() {
+
+  // All finished
+  this.saveToFile();
 };
 
 Jailbreak.Scraper.WordpressOrgScraper.prototype.loadFromFile = function() {
@@ -41,6 +51,7 @@ Jailbreak.Scraper.WordpressOrgScraper.prototype.saveToFile = function() {
     console.log("Could not write file", this.filename);
   }
 };
+
 
 
 }).call(this);
