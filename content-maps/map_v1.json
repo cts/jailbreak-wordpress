@@ -8,8 +8,20 @@
       "data": {
         "title": "Haystack Blog",
         "link": "http://groups.csail.mit.edu/haystack/blog",
-        "subtitle": "MIT CSAIL Research (<a href=\"http://haystack.csail.mit.edu/\">Group Website</a>)"
-      },
+        "subtitle": "MIT CSAIL Research (<a href=\"http://haystack.csail.mit.edu/\">Group Website</a>)",
+        "repeats" :[
+          {
+          "selector" : "#container",
+          "newClass" : "posts-container",
+          "offset" : "0",
+          "step" : "1",
+          "content" : {
+            "post-title" : "h2",
+            "post-content" : "div.entry"
+            }
+          }
+        ]
+    },
       "cts": {
       }
     }

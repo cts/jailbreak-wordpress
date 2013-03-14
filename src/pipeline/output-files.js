@@ -40,12 +40,32 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
 Jailbreak.Pipeline.OutputFiles.prototype.writeCTSSheets = function(theme, files, toDir) {
   var ctsString = function(key, attr) {
     var rule = "";
-    if (attr==="innerHTML") {
-      rule = "." + key + " { value: " + key + " }";
+    if (key==="repeats") {
+       var repeatList = attr;
+       for (var i = 0; i < repeatList.length; i++) {
+         var repeat = repeatList[i];
+         rule += "." + repeat.name + " { \n";
+         rule+="  repeat: " + repeat.name + "\n";
+         rule+= "  repeat-offset: " + repeat.offset + "\n";
+         rule+= "  repeat-step: " + repeat.step + "\n";
+         rule += "}" + "\n";
+         for (var g=0; g < repeat.content.length; g++) {
+            rule += "." + repeat.name + " ." + repeat.content[g] + " { \n";
+            rule += "  value: " + repeat.content[g] + "\n";
+            rule += "} \n";
+         }
+       }
+    } else if (attr==="innerHTML") {
+      rule = "." + key + " { \n";
+      rule+= "  value: " + key + " \n";
+      rule += "} \n";
     } else if (attr) {
-      rule = "." + key + " { value(@" + attr+ "): " + key + " }";
+      rule = "." + key + " { \n";
+      rule += "  value(@" + attr+ "): " + key +" \n";
+      rule+= "} \n";
     }
-    return rule + "\n";
+    console.log("adding rule: " + rule);
+    return rule;
  };
  var directory = path.join(theme.directory, toDir);
   if (! fs.existsSync(directory)) {
@@ -58,7 +78,6 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeCTSSheets = function(theme, files,
       var fullfilename = path.join(directory, filename);
       Jailbreak.Pipeline.log(this, "Writing " + fullfilename);
       _.each(obj, function(val, name) {
-        Jailbreak.Pipeline.log(this,"adding rule: " + ctsString(name, val));
         data+=ctsString(name, val);
       }, this);
       fs.writeFileSync(fullfilename, data, "utf8");
