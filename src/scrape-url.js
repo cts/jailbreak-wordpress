@@ -6,7 +6,7 @@ fs = require('fs');
 path = require('path');
 optimist = require('optimist');
 
-BANNER = "Usage: scrape-url <URL> <Workspace> <ThemeName> <PageName>";
+BANNER = "Usage: scrape-url <Workspace> <ThemeName> <PageName> <URL>";
 
 
 /*
@@ -23,10 +23,10 @@ exports.run = function() {
     return false;
   }
   
-  var url = argv._[0];
-  var workspaceDirectory = argv._[1];
-  var themeName = argv._[2];
-  var pageName = argv._[3];
+  var workspaceDirectory = argv._[0];
+  var themeName = argv._[1];
+  var pageName = argv._[2];
+  var url = argv._[4];
 
   var themeDirectory = path.join(workspaceDirectory, themeName);
 
@@ -46,12 +46,12 @@ exports.run = function() {
 
   /*
    * TODO(jason): Create a content map PROGRAMMATICALLY
+   * see the file
+   *    content-maps/testmap.json
+   * as a guide
    */
-  // Instead of this:
-  //var contentMap = new Jailbreak.ContentMap("./content-maps/testmap.json");
-
   // We'll create this
-  var ourCustomContentMapJson = { 
+  var contentMapConfig = { 
       name: "Single URL",
       // TODO(jason)
       // Parse out the domain from the URL
@@ -63,19 +63,16 @@ exports.run = function() {
           // TODO(jason):
           // Parse out the path from the url variable.
           // e.g. "/karger"
-          "page": "path from the URL variable"
+          "path": "path from the URL variable"
         }
       ]
     };
 
   // TODO(jason):
-  // we want to be able to call the ContenMap constructor like this.
-  // You'll need to modify the ContentMap constructor in src/model/contentmap.js to enable this.
-  var contentMap = new Jailbreak.ContentMap(outCustomContentMapJson, "json");
-  // Note that the old way, we just pass it a FILENAME to the JSON object
-  // like this:
-  // var contentMap = new Jailbreak.ContentMap("./content-maps/testmap.json");
-
+  // I already modified the ContentMap constructor for you, so
+  // you can just pass this JSON object you create above into it.
+  // (I'd rather you spend time focusing on how the scraping pipeline works)
+  var contentMap = new Jailbreak.ContentMap(contentMapConfig);
   var theme = new Jailbreak.Theme(themeName, themeDirectory, contentMap);
 
   pipeline.run(theme);

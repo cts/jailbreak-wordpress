@@ -11,7 +11,7 @@ if (typeof Jailbreak == "undefined") {
  *
  * opts: options array
  */
-Jailbreak.ContentMap = function(contentMapFile) {
+Jailbreak.ContentMap = function(config) {
 
   /* A list of ContentPage objects */
   this.pages = [];
@@ -23,7 +23,11 @@ Jailbreak.ContentMap = function(contentMapFile) {
      All pages are specified relative to this path. */
   this.domain = null;
 
-  this.loadFromFile(contentMapFile);
+  if (typeof config == "string") {
+    this.loadFromFile(config);
+  } else {
+    this.loadFromJson(config);
+  }
 };
 
 Jailbreak.ContentMap.prototype.reset = function() {
