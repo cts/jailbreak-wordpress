@@ -48,6 +48,25 @@ module.exports = function(grunt) {
           "src/scrape-themes.js"
         ],
         dest: "release/scrape-themes.js"
+      },
+      singleurl: {
+        src : [
+          "<banner>",
+          "src/fragments/prefix._js",
+          "src/model/theme.js",
+          "src/model/contentpage.js",
+          "src/model/contentmap.js",
+          "src/pipeline/pipeline-init.js",
+          "src/pipeline/fetch-pages.js",
+          "src/pipeline/fetch-assets.js",
+          "src/pipeline/fix-assets.js",
+          "src/pipeline/annotate-dom.js",
+          "src/pipeline/output-files.js",
+          "src/pipeline/pipeline.js",
+          "src/fragments/postfix._js",
+          "src/scrape-url.js"
+        ],
+        dest : "release/scrape-url.js"
       }
     },
     lint: {

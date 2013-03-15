@@ -621,16 +621,24 @@ Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
  * the HTML so that it references local project structure.
  */
 
-Jailbreak.Pipeline.Pipeline = function() {
+
+Jailbreak.Pipeline.Pipeline = function(options) {
+  /*
+   * TODO(jason):
+   *  let user use the options variable to specify which stages to process
+   */
   this.name = "Pipeline";
   this.stages = [
-    new Jailbreak.Pipeline.FetchPages(),
-    new Jailbreak.Pipeline.FetchAssets(),
-    new Jailbreak.Pipeline.AnnotateDom(),
-    new Jailbreak.Pipeline.OutputFiles()
+    new Jailbreak.Pipeline.FetchPages(),  // Fetches the HTML (need)
+    new Jailbreak.Pipeline.FetchAssets(), // Fetches the images, javascript, css, etc (need)
+    new Jailbreak.Pipeline.AnnotateDom(), // Does lightweight wrapper induction (jason: this is the one we don't need)
+    new Jailbreak.Pipeline.OutputFiles()  // Writes out files (need)
   ];
 };
 
+
+// TODO(jason):
+// You'll need to CREATE this theme object to pass in that specifies what to pull down.
 Jailbreak.Pipeline.Pipeline.prototype.run = function(theme) {
   Jailbreak.Pipeline.log(this, "Running Stage: " + this.stages[0].name);
   this.stages[0].run(theme, this);
