@@ -1,16 +1,3 @@
-/**
-* jailbreak-wordpress
- * Breaks themes out of jail.
- *
- * @author Ted Benson and Sarah Scodel
- * @copyright MIT CSAIL Haystack Group 2013
- * @license MIT <http://github.com/webcats/dscrape/blob/master/LICENSE.txt>
- * @link 
- * @module jailbreak-wordpress
- * @version 0.0.1
- */
-
-
 (function() {
 
 var _ = require("underscore");

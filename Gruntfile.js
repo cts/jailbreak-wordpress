@@ -50,30 +50,20 @@ module.exports = function(grunt) {
         dest: "release/scrape-themes.js"
       }
     },
-    lint: {
-      all: ['grunt.js', 'src/**/*.js']
-    },
-    min: {
-      "release/jailbreak-wordpress.min.js": ["<banner>", "release/jailbreak-wordpress.js"]
+    jshint: {
+      files: ['grunt.js', 'src/**/*.js']
     },
     qunit: {
       files: [
         "test/index.html"
       ]
-    },
-    watch: {
-      scripts: {
-        files: "<config:lint.files>",
-        tasks: "default"
-      }
-    },
-    jshint: {
-      options: {
-        browser: true
-      }
     }
   });
 
-  // Default task.
-  grunt.registerTask('default', 'lint qunit concat min');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-qunit');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+
+  grunt.registerTask('default', ['jshint', 'concat']);
 };
