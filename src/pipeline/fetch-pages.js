@@ -26,7 +26,7 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
   var jsdom = require('jsdom').jsdom;
   var agent = httpAgent.create(domain, paths);
 
-  count = 0;
+  var count = 0;
   agent.addListener('next', function (e, agent) {
      if (e) {
        Jailbreak.Pipeline.log(self, 'error: ' + e);
