@@ -47,7 +47,14 @@
     "util": "*",
     "url": "*",
     "http-agent": "*",
-    "jsuri": "*"
+    "jsuri": "*",
+    "grunt": "*",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-nodeunit": "~0.1.2",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-qunit": "*",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-watch": "*"
   },
   "devDependencies": {
   },
