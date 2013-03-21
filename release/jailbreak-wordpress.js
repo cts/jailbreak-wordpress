@@ -220,7 +220,7 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
   var jsdom = require('jsdom').jsdom;
   var agent = httpAgent.create(domain, paths);
 
-  count = 0;
+  var count = 0;
   agent.addListener('next', function (e, agent) {
      if (e) {
        Jailbreak.Pipeline.log(self, 'error: ' + e);
@@ -387,7 +387,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
         }
         maybeFinish(url);
       } else {
-        Jailbreak.Pipeline.log(self, "error " + e);
+        Jailbreak.Pipeline.log(self, "error " + error);
         pipeline.advance(self, theme, {success:false});
       }
     });
@@ -608,8 +608,9 @@ Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
  * the HTML so that it references local project structure.
  */
 
-Jailbreak.Pipeline.Pipeline = function() {
+Jailbreak.Pipeline.Pipeline = function(options) {
   this.name = "Pipeline";
+  this.options = options || {};
   this.stages = [
     new Jailbreak.Pipeline.FetchPages(),
     new Jailbreak.Pipeline.FetchAssets(),
@@ -673,6 +674,9 @@ Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
       this.stages[nextStage].run(theme, this);
     } else {
       Jailbreak.Pipeline.log(this, "Pipeline complete");
+      if (typeof this.options.onComplete == 'function') {
+        this.options.onComplete();
+      }
     }
   } else {
     Jailbreak.Pipeline.log(this, "Aborting pipeline because of bad result.");
@@ -697,6 +701,13 @@ printError = function(line) {
   process.stderr.write(line + "\n");
 };
 
+var shortZipName = function(name) {
+  var ind = name.indexOf("download");
+   var zip = name.substring(ind+9, name.length);
+   ind = zip.indexOf(".");
+   return zip.substring(0, ind);
+ };
+
 BANNER = "Usage: jailbreak-wordpress <Workspace> <ThemeName> [ContentMap]";
 
 exports.run = function() {
@@ -709,18 +720,52 @@ exports.run = function() {
   var workspaceDirectory = argv._[0];
   var themeName = argv._[1];
   var contentMapFile = argv._[2];
-  var themeDirectory = path.join(workspaceDirectory, themeName);
+  var multipleThemes = themeName.indexOf("ScrapeData")!=-1;
 
   // Create the Workspace directory if it doesn't exist
   if (! fs.existsSync(workspaceDirectory)) {
     fs.mkdirSync(workspaceDirectory);
   }
-  if (! fs.existsSync(themeDirectory)) {
-    fs.mkdirSync(themeDirectory);
-  }
-
   var pipeline = new Jailbreak.Pipeline.Pipeline();
-  var contentMap = new Jailbreak.ContentMap(contentMapFile);
-  var theme = new Jailbreak.Theme(themeName, themeDirectory, contentMap);
-  pipeline.run(theme);
+  if (!multipleThemes) {
+  var themeDirectory = path.join(workspaceDirectory, themeName);
+   if (! fs.existsSync(themeDirectory)) {
+      fs.mkdirSync(themeDirectory);
+    }
+    var contentMap = new Jailbreak.ContentMap(contentMapFile);
+    var theme = new Jailbreak.Theme(themeName, themeDirectory, contentMap);
+    pipeline.run(theme);
+  }
+  else {
+    console.log("theme name: " + themeName);
+    var json = fs.readFileSync(themeName, "utf-8");
+    var data = JSON.parse(json);
+    var done = 0;
+    var toDO = data.zip_urls.length;
+    var maybeScrapeTheme = function() {
+      if (done < toDO) {
+        scrapeTheme(done++);
+      }
+    };
+    var scrapeTheme = function(i) {
+      var contentMap2 = new Jailbreak.ContentMap(contentMapFile);
+      var name = shortZipName(data.zip_urls[i]);
+      var themeDirectory2 = path.join(workspaceDirectory, name);
+      console.log("name: " + name);
+      if (! fs.existsSync(themeDirectory2)) {
+        fs.mkdirSync(themeDirectory2);
+      }
+      for (var x=0; x < contentMap2.pages.length; x++) {
+        var page = contentMap2.pages[x];
+        page.path = page.path+"?preview_theme=" +name;
+        console.log("page path for: "+ name + " is: " + page.path);
+      }
+      //must create directory
+      var newDirectory = path.join(workspaceDirectory, name);
+      var theme2 = new Jailbreak.Theme(name, themeDirectory2, contentMap2);
+      pipeline.options.onComplete = maybeScrapeTheme;
+      pipeline.run(theme2);
+    };
+    maybeScrapeTheme();
+  }
 };

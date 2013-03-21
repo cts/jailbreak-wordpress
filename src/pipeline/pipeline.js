@@ -3,8 +3,9 @@
  * the HTML so that it references local project structure.
  */
 
-Jailbreak.Pipeline.Pipeline = function() {
+Jailbreak.Pipeline.Pipeline = function(options) {
   this.name = "Pipeline";
+  this.options = options || {};
   this.stages = [
     new Jailbreak.Pipeline.FetchPages(),
     new Jailbreak.Pipeline.FetchAssets(),
@@ -68,6 +69,9 @@ Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
       this.stages[nextStage].run(theme, this);
     } else {
       Jailbreak.Pipeline.log(this, "Pipeline complete");
+      if (typeof this.options.onComplete == 'function') {
+        this.options.onComplete();
+      }
     }
   } else {
     Jailbreak.Pipeline.log(this, "Aborting pipeline because of bad result.");

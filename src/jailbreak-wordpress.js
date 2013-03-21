@@ -53,7 +53,14 @@ exports.run = function() {
     console.log("theme name: " + themeName);
     var json = fs.readFileSync(themeName, "utf-8");
     var data = JSON.parse(json);
-    for (var i = 0; i <data.zip_urls.length; i++) {
+    var done = 0;
+    var toDO = data.zip_urls.length;
+    var maybeScrapeTheme = function() {
+      if (done < toDO) {
+        scrapeTheme(done++);
+      }
+    };
+    var scrapeTheme = function(i) {
       var contentMap2 = new Jailbreak.ContentMap(contentMapFile);
       var name = shortZipName(data.zip_urls[i]);
       var themeDirectory2 = path.join(workspaceDirectory, name);
@@ -69,7 +76,9 @@ exports.run = function() {
       //must create directory
       var newDirectory = path.join(workspaceDirectory, name);
       var theme2 = new Jailbreak.Theme(name, themeDirectory2, contentMap2);
+      pipeline.options.onComplete = maybeScrapeTheme;
       pipeline.run(theme2);
-    }
+    };
+    maybeScrapeTheme();
   }
 };
