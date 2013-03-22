@@ -1,0 +1,5 @@
+From the directory with all the themes, run:
+
+find . -name "*.zip" | xargs -n1 unzip -d PATH_TO_THEME_DIRECTORY
+
+where the path to the theme directory points to where wordpress wants the themes

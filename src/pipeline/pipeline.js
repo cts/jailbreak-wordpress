@@ -9,6 +9,7 @@ Jailbreak.Pipeline.Pipeline = function(options) {
    *  let user use the options variable to specify which stages to process
    */
   this.name = "Pipeline";
+  this.options = options || {};
   this.stages = [
     new Jailbreak.Pipeline.FetchPages(),  // Fetches the HTML (need)
     new Jailbreak.Pipeline.FetchAssets(), // Fetches the images, javascript, css, etc (need)
@@ -75,6 +76,9 @@ Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
       this.stages[nextStage].run(theme, this);
     } else {
       Jailbreak.Pipeline.log(this, "Pipeline complete");
+      if (typeof this.options.onComplete == 'function') {
+        this.options.onComplete();
+      }
     }
   } else {
     Jailbreak.Pipeline.log(this, "Aborting pipeline because of bad result.");

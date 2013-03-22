@@ -142,7 +142,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
         }
         maybeFinish(url);
       } else {
-        Jailbreak.Pipeline.log(self, "error " + e);
+        Jailbreak.Pipeline.log(self, "error " + error);
         pipeline.advance(self, theme, {success:false});
       }
     });
