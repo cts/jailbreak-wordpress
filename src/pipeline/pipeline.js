@@ -3,7 +3,6 @@
  * the HTML so that it references local project structure.
  */
 
-
 Jailbreak.Pipeline.Pipeline = function(options) {
   /*
    * TODO(jason):
