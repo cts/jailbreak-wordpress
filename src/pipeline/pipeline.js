@@ -3,7 +3,6 @@
  * the HTML so that it references local project structure.
  */
 
-
 /* format of options:
 var options = {
   FetchPages: boolean, 
@@ -14,10 +13,6 @@ var options = {
 */
 
 Jailbreak.Pipeline.Pipeline = function(options) {
-  /*
-   * TODO(jason):
-   *  let user use the options variable to specify which stages to process
-   */
   this.name = "Pipeline";
   var stages = [];
   if (options.FetchPages) {stages.push(new Jailbreak.Pipeline.FetchPages());}
@@ -25,6 +20,7 @@ Jailbreak.Pipeline.Pipeline = function(options) {
   if (options.AnnotateDom) {stages.push(new Jailbreak.Pipeline.AnnotateDom());}
   if (options.OutputFiles) {stages.push(new Jailbreak.Pipeline.OutputFiles());}
   this.stages = stages;
+  this.options = options || {};
 };
 
 
@@ -85,6 +81,9 @@ Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
       this.stages[nextStage].run(theme, this);
     } else {
       Jailbreak.Pipeline.log(this, "Pipeline complete");
+      if (typeof this.options.onComplete == 'function') {
+        this.options.onComplete();
+      }
     }
   } else {
     Jailbreak.Pipeline.log(this, "Aborting pipeline because of bad result.");
