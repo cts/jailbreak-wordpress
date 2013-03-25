@@ -36,6 +36,13 @@ exports.run = function() {
     fs.mkdirSync(themeDirectory);
   }
 
+  var options = {
+    FetchPages: true,
+    FetchAssets: true,
+    AnnotateDom: true,
+    OutputFiles: true
+  };
+
   var pipeline = new Jailbreak.Pipeline.Pipeline();
   var contentMap = new Jailbreak.ContentMap(contentMapFile);
   var theme = new Jailbreak.Theme(themeName, themeDirectory, contentMap);

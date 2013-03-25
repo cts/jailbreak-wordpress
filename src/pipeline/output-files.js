@@ -17,7 +17,7 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
 
     if (typeof obj == "object") {
       filename = obj.filename;
-      data = obj.date;
+      data = obj.data;
      // console.log("is object, filename: " + filename + " , data: " + data);
     } else {
       filename = url + ".html";

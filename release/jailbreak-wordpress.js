@@ -280,6 +280,12 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
     if (url.substring(0,2) == "//") {
       url = "http:" + url;
     }
+    if (url.substring(0,4)!= "http"){
+      url = theme.contentMap.domain + theme.contentMap.pages[0].path+url;
+    }
+    if (url.substring(0,4)!= "http"){
+      url = "http://" + url;
+    }
     return url;
   };
 
@@ -329,7 +335,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
           }
         });
 
-        $("script[type*=javascript]").map(function() { 
+        $("script[type*=javascript]").map(function() {
            if (this.src) {
              Jailbreak.Pipeline.log(self, "Queueing asset fetch for: " + name + ": " + this.src);
              var url = fixUrl(this.src);
@@ -391,7 +397,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
         }
         maybeFinish(url);
       } else {
-        Jailbreak.Pipeline.log(self, "error " + e);
+        Jailbreak.Pipeline.log(self, "error " + error);
         pipeline.advance(self, theme, {success:false});
       }
     });
@@ -524,7 +530,7 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
 
     if (typeof obj == "object") {
       filename = obj.filename;
-      data = obj.date;
+      data = obj.data;
      // console.log("is object, filename: " + filename + " , data: " + data);
     } else {
       filename = url + ".html";
@@ -613,18 +619,27 @@ Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
  */
 
 
+/* format of options:
+var options = {
+  FetchPages: boolean, 
+  FetchAssets: boolean,
+  AnnotateDom: boolean,
+  OutputFiles: boolean,
+}
+*/
+
 Jailbreak.Pipeline.Pipeline = function(options) {
   /*
    * TODO(jason):
    *  let user use the options variable to specify which stages to process
    */
   this.name = "Pipeline";
-  this.stages = [
-    new Jailbreak.Pipeline.FetchPages(),  // Fetches the HTML (need)
-    new Jailbreak.Pipeline.FetchAssets(), // Fetches the images, javascript, css, etc (need)
-    new Jailbreak.Pipeline.AnnotateDom(), // Does lightweight wrapper induction (jason: this is the one we don't need)
-    new Jailbreak.Pipeline.OutputFiles()  // Writes out files (need)
-  ];
+  var stages = [];
+  if (options.FetchPages) {stages.push(new Jailbreak.Pipeline.FetchPages());}
+  if (options.FetchAssets) {stages.push(new Jailbreak.Pipeline.FetchAssets());}
+  if (options.AnnotateDom) {stages.push(new Jailbreak.Pipeline.AnnotateDom());}
+  if (options.OutputFiles) {stages.push(new Jailbreak.Pipeline.OutputFiles());}
+  this.stages = stages;
 };
 
 
@@ -730,6 +745,13 @@ exports.run = function() {
   if (! fs.existsSync(themeDirectory)) {
     fs.mkdirSync(themeDirectory);
   }
+
+  var options = {
+    FetchPages: true,
+    FetchAssets: true,
+    AnnotateDom: true,
+    OutputFiles: true
+  };
 
   var pipeline = new Jailbreak.Pipeline.Pipeline();
   var contentMap = new Jailbreak.ContentMap(contentMapFile);

@@ -5,6 +5,7 @@
 fs = require('fs');
 path = require('path');
 optimist = require('optimist');
+url = require('url');
 
 BANNER = "Usage: scrape-url <Workspace> <ThemeName> <PageName> <URL>";
 
@@ -26,7 +27,7 @@ exports.run = function() {
   var workspaceDirectory = argv._[0];
   var themeName = argv._[1];
   var pageName = argv._[2];
-  var url = argv._[4];
+  var requestUrl = argv._[3];
 
   var themeDirectory = path.join(workspaceDirectory, themeName);
 
@@ -42,7 +43,15 @@ exports.run = function() {
 
   // TODO(jason): initialize the pipeline to tell it that we DONT want to 
   // run the third step.
-  var pipeline = new Jailbreak.Pipeline.Pipeline();
+
+  var options = {
+    FetchPages: true,
+    FetchAssets: true,
+    AnnotateDom: false,
+    OutputFiles: true
+  };
+
+  var pipeline = new Jailbreak.Pipeline.Pipeline(options);
 
   /*
    * TODO(jason): Create a content map PROGRAMMATICALLY
@@ -56,14 +65,14 @@ exports.run = function() {
       // TODO(jason)
       // Parse out the domain from the URL
       // e.g. "people.csail.mit.edu"
-      domain: "Domain from the URL variable",
+      domain: url.parse(requestUrl,true).host,
       pages: [
         {
-          "name": pageName,
+          name: pageName,
           // TODO(jason):
           // Parse out the path from the url variable.
           // e.g. "/karger"
-          "path": "path from the URL variable"
+          path: url.parse(requestUrl,true).pathname
         }
       ]
     };

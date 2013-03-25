@@ -4,18 +4,27 @@
  */
 
 
+/* format of options:
+var options = {
+  FetchPages: boolean, 
+  FetchAssets: boolean,
+  AnnotateDom: boolean,
+  OutputFiles: boolean,
+}
+*/
+
 Jailbreak.Pipeline.Pipeline = function(options) {
   /*
    * TODO(jason):
    *  let user use the options variable to specify which stages to process
    */
   this.name = "Pipeline";
-  this.stages = [
-    new Jailbreak.Pipeline.FetchPages(),  // Fetches the HTML (need)
-    new Jailbreak.Pipeline.FetchAssets(), // Fetches the images, javascript, css, etc (need)
-    new Jailbreak.Pipeline.AnnotateDom(), // Does lightweight wrapper induction (jason: this is the one we don't need)
-    new Jailbreak.Pipeline.OutputFiles()  // Writes out files (need)
-  ];
+  var stages = [];
+  if (options.FetchPages) {stages.push(new Jailbreak.Pipeline.FetchPages());}
+  if (options.FetchAssets) {stages.push(new Jailbreak.Pipeline.FetchAssets());}
+  if (options.AnnotateDom) {stages.push(new Jailbreak.Pipeline.AnnotateDom());}
+  if (options.OutputFiles) {stages.push(new Jailbreak.Pipeline.OutputFiles());}
+  this.stages = stages;
 };
 
 

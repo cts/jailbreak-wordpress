@@ -31,6 +31,12 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
     if (url.substring(0,2) == "//") {
       url = "http:" + url;
     }
+    if (url.substring(0,4)!= "http"){
+      url = theme.contentMap.domain + theme.contentMap.pages[0].path+url;
+    }
+    if (url.substring(0,4)!= "http"){
+      url = "http://" + url;
+    }
     return url;
   };
 
@@ -80,7 +86,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
           }
         });
 
-        $("script[type*=javascript]").map(function() { 
+        $("script[type*=javascript]").map(function() {
            if (this.src) {
              Jailbreak.Pipeline.log(self, "Queueing asset fetch for: " + name + ": " + this.src);
              var url = fixUrl(this.src);
@@ -142,7 +148,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
         }
         maybeFinish(url);
       } else {
-        Jailbreak.Pipeline.log(self, "error " + e);
+        Jailbreak.Pipeline.log(self, "error " + error);
         pipeline.advance(self, theme, {success:false});
       }
     });

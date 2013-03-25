@@ -1,16 +1,3 @@
-/**
-* jailbreak-wordpress
- * Breaks themes out of jail.
- *
- * @author Ted Benson and Sarah Scodel
- * @copyright MIT CSAIL Haystack Group 2013
- * @license MIT <http://github.com/webcats/dscrape/blob/master/LICENSE.txt>
- * @link 
- * @module jailbreak-wordpress
- * @version 0.0.1
- */
-
-
 (function() {
 
 var _ = require("underscore");
@@ -293,6 +280,12 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
     if (url.substring(0,2) == "//") {
       url = "http:" + url;
     }
+    if (url.substring(0,4)!= "http"){
+      url = theme.contentMap.domain + theme.contentMap.pages[0].path+url;
+    }
+    if (url.substring(0,4)!= "http"){
+      url = "http://" + url;
+    }
     return url;
   };
 
@@ -342,7 +335,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
           }
         });
 
-        $("script[type*=javascript]").map(function() { 
+        $("script[type*=javascript]").map(function() {
            if (this.src) {
              Jailbreak.Pipeline.log(self, "Queueing asset fetch for: " + name + ": " + this.src);
              var url = fixUrl(this.src);
@@ -404,7 +397,7 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
         }
         maybeFinish(url);
       } else {
-        Jailbreak.Pipeline.log(self, "error " + e);
+        Jailbreak.Pipeline.log(self, "error " + error);
         pipeline.advance(self, theme, {success:false});
       }
     });
@@ -537,7 +530,7 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
 
     if (typeof obj == "object") {
       filename = obj.filename;
-      data = obj.date;
+      data = obj.data;
      // console.log("is object, filename: " + filename + " , data: " + data);
     } else {
       filename = url + ".html";
@@ -626,18 +619,27 @@ Jailbreak.Pipeline.OutputFiles.prototype.run = function(theme, pipeline) {
  */
 
 
+/* format of options:
+var options = {
+  FetchPages: boolean, 
+  FetchAssets: boolean,
+  AnnotateDom: boolean,
+  OutputFiles: boolean,
+}
+*/
+
 Jailbreak.Pipeline.Pipeline = function(options) {
   /*
    * TODO(jason):
    *  let user use the options variable to specify which stages to process
    */
   this.name = "Pipeline";
-  this.stages = [
-    new Jailbreak.Pipeline.FetchPages(),  // Fetches the HTML (need)
-    new Jailbreak.Pipeline.FetchAssets(), // Fetches the images, javascript, css, etc (need)
-    new Jailbreak.Pipeline.AnnotateDom(), // Does lightweight wrapper induction (jason: this is the one we don't need)
-    new Jailbreak.Pipeline.OutputFiles()  // Writes out files (need)
-  ];
+  var stages = [];
+  if (options.FetchPages) {stages.push(new Jailbreak.Pipeline.FetchPages());}
+  if (options.FetchAssets) {stages.push(new Jailbreak.Pipeline.FetchAssets());}
+  if (options.AnnotateDom) {stages.push(new Jailbreak.Pipeline.AnnotateDom());}
+  if (options.OutputFiles) {stages.push(new Jailbreak.Pipeline.OutputFiles());}
+  this.stages = stages;
 };
 
 
@@ -713,6 +715,7 @@ Jailbreak.Pipeline.Pipeline.prototype.advance = function(stage, theme, result) {
 fs = require('fs');
 path = require('path');
 optimist = require('optimist');
+url = require('url');
 
 BANNER = "Usage: scrape-url <Workspace> <ThemeName> <PageName> <URL>";
 
@@ -734,7 +737,7 @@ exports.run = function() {
   var workspaceDirectory = argv._[0];
   var themeName = argv._[1];
   var pageName = argv._[2];
-  var url = argv._[4];
+  var requestUrl = argv._[3];
 
   var themeDirectory = path.join(workspaceDirectory, themeName);
 
@@ -750,7 +753,15 @@ exports.run = function() {
 
   // TODO(jason): initialize the pipeline to tell it that we DONT want to 
   // run the third step.
-  var pipeline = new Jailbreak.Pipeline.Pipeline();
+
+  var options = {
+    FetchPages: true,
+    FetchAssets: true,
+    AnnotateDom: false,
+    OutputFiles: true
+  };
+
+  var pipeline = new Jailbreak.Pipeline.Pipeline(options);
 
   /*
    * TODO(jason): Create a content map PROGRAMMATICALLY
@@ -764,14 +775,14 @@ exports.run = function() {
       // TODO(jason)
       // Parse out the domain from the URL
       // e.g. "people.csail.mit.edu"
-      domain: "Domain from the URL variable",
+      domain: url.parse(requestUrl,true).host,
       pages: [
         {
-          "name": pageName,
+          name: pageName,
           // TODO(jason):
           // Parse out the path from the url variable.
           // e.g. "/karger"
-          "path": "path from the URL variable"
+          path: url.parse(requestUrl,true).pathname
         }
       ]
     };
@@ -781,7 +792,6 @@ exports.run = function() {
   // you can just pass this JSON object you create above into it.
   // (I'd rather you spend time focusing on how the scraping pipeline works)
   var contentMap = new Jailbreak.ContentMap(contentMapConfig);
-  console.log(contentMap);
   var theme = new Jailbreak.Theme(themeName, themeDirectory, contentMap);
 
   pipeline.run(theme);
