@@ -23,17 +23,86 @@ Jailbreak.ContentMap = function(config) {
      All pages are specified relative to this path. */
   this.domain = null;
 
+  this.content = {};
+
   if (typeof config == "string") {
     this.loadFromFile(config);
   } else {
     this.loadFromJson(config);
   }
+  this.buildLookups();
 };
 
 Jailbreak.ContentMap.prototype.reset = function() {
   this.pages = [];
   this.name = null;
   this.domain = null;
+  this.content = {};
+  this.forward = {};
+  this.backward = {};
+};
+
+/*
+ * Returns a key or null
+ */
+Jailbreak.ContentMap.prototype.keypathForValue = function(value) {
+  if (value in this.backward) {
+    return this.backward[value];
+  } else {
+    return null;
+  }
+};
+
+Jailbreak.ContentMap.prototype.cssClassForKeypath = function(value) {
+  return "CLASS";
+};
+
+Jailbreak.ContentMap.prototype.buildLookups = function(content) {
+  this.forward = {};
+  this.backward = {};
+  var objects = [["", this.content]];
+  var self = this;
+
+  var chunkOne = function() {
+    var thisObject = objects.pop();
+    var prefix = thisObject[0];
+    var obj = thisObject[1];
+
+    _.each(obj, function(v, k) {
+      var path = k;
+      if (prefix !== "") {
+        path = prefix + "." + path;
+      }
+
+      if (_.isArray(v)) {
+        for (var i = 0; i < v.length; i++) {
+          var np = path + ".[" + i + "]";
+          objects.push([np, v[i]]);
+        }
+      } else if (_.isObject(v)) {
+        objects.push([path, v]);
+      } else {
+        if (_.contains(this.backward, v)) {
+          Jailbreak.Pipeline.log(self, "WARNING: Backward lookup already has value " + v);
+        }
+        if (_.contains(this.forward, path)) {
+          Jailbreak.Pipeline.log(self, "WARNING: Backward lookup already has value " + k);
+        }
+        this.forward[path] = v;
+        this.backward[v] = path;
+      }
+    });
+  };
+
+  while (objects.length > 0) {
+    chunkOne();
+  }
+
+  console.log("[ContentMap] Forward Content Map");
+  console.log("[ContentMap] ===================");
+    _.each(this.forward, function(v, k) {
+      console.log("[ContentMap] " + k + " ==> " + v);
+  });
 };
 
 Jailbreak.ContentMap.prototype.loadFromFile = function(filename) {
@@ -52,13 +121,17 @@ Jailbreak.ContentMap.prototype.loadFromFile = function(filename) {
 
 Jailbreak.ContentMap.prototype.loadFromJson = function(json) {
   this.reset();
-  
+
   if (typeof json.name != "undefined") {
     this.name = json.name;
   }
 
   if (typeof json.domain != "undefined") {
     this.domain = json.domain;
+  }
+
+  if (typeof json.content != "undefined") {
+    this.content = json.content;
   }
 
   if (typeof json.pages != "undefined") {

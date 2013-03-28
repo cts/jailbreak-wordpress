@@ -15,7 +15,7 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
 //comment
   for (var i = 0; i < theme.contentMap.pages.length; i++) {
     var pageName = theme.contentMap.pages[i].name;
-    var path = theme.contentMap.pages[i].path;
+    var path = theme.contentMap.pages[i].getPath();
     paths.push(path);
     Jailbreak.Pipeline.log(self, "Scraping " + pageName + ": " + path);
   }

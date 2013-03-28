@@ -70,8 +70,7 @@ exports.run = function() {
       }
       for (var x=0; x < contentMap2.pages.length; x++) {
         var page = contentMap2.pages[x];
-        page.path = page.path+"?preview_theme=" +name;
-        console.log("page path for: "+ name + " is: " + page.path);
+        page.queryparams = _.extend({'preview_theme':name}, page.queryparams);
       }
       //must create directory
       var newDirectory = path.join(workspaceDirectory, name);

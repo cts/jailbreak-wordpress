@@ -4,7 +4,7 @@
  * To be used with GruntJS <http://gruntjs.com/>
  */
 module.exports = function(grunt) {
-  
+
   grunt.initConfig({
     pkg: "<json:package.json>",
     meta: {
