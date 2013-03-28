@@ -29,14 +29,13 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
 
   var fixUrl = function(url) {
     if (url.substring(0,2) == "//") {
-      console.log("BAR");
       url = "http:" + url;
     } else if (url.substring(0,1) == "/") {
-      console.log("OOH");
-      // Need to add the base
       url = "http://" + theme.contentMap.domain + url;
     }
-    console.log("URL:" + url);
+    if (url.substring(0,4) != "http"){
+      url = theme.contentMap.domain + theme.contentMap.pages[0].path + url;
+    }
     return url;
   };
 
