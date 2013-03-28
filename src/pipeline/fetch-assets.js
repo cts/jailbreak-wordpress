@@ -52,48 +52,57 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
     return filename;
   };
 
-  var addToAssetQueue = function(type, node, attr, newbase) {
-    var url = $(node).attr(attr);
+  var addToAssetQueue = function($, type, node, attr, newbase) {
+    var e = $(node);
+    var urlUnfixed = e.attr(attr);
+    var url = fixUrl(urlUnfixed);
+    var filename = filenameForUrl(url);
+    Jailbreak.Pipeline.log(self, "Asset to download: " + url + " --> " + filename);
     self.assetQueue[url] = {
-      flename: filenameForUrl(fixUrl(url)),
+      filename: filename,
       type: type
     };
+    e.attr(attr, url);
   };
 
   _.each(_.clone(this.pageQueue), function(html, name) {
     var jsdom = require('jsdom');
     jsdom.env({
       html: html,
-      scripts: ["http://code.jquery.com/jquery.js"],
+      //scripts: ["http://code.jquery.com/jquery.js"],
+      scripts: ["http://localhost:4000/js/jquery.js"],
       done: function (errors, window) {
-        console.log(errors);
-        var $ = window.$;
-
-        _.each($('img'), function(elem) {
-          addToAssetQueue('img', node, 'src', 'images/');
-        });
-
-        _.each($('link'), function(elem) {
-          var e = $(elem);
-          if (
-            ((! _.isNull(e.prop('type'))) && (e.prop('type').indexOf('css') != -1)) ||
-            ((! _.isUndefined(e.attr('rel'))) && (e.attr('rel') == 'stylesheets'))
-          ) {
-            addToAssetQueue('css', node, 'href', 'stylesheets/');
+        if (errors) {
+          Jailbreak.Pipeline.log(self, "Error loading up page HTML with scripts: " + name);
+          Jailbreak.Pipeline.log(self, errors);
+        } else {
+          var $ = window.$;
+          _.each($('img'), function(elem) {
+            addToAssetQueue($, 'img', elem, 'src', 'images/');
+          });
+  
+          _.each($('link'), function(elem) {
+            var e = $(elem);
+            if (
+              ((! _.isNull(e.prop('type'))) && (e.prop('type').indexOf('css') != -1)) ||
+              ((! _.isUndefined(e.attr('rel'))) && (e.attr('rel') == 'stylesheets'))
+            ) {
+              addToAssetQueue($, 'css', elem, 'href', 'stylesheets/');
+            }
+          });
+  
+          _.each($("script[type*=javascript]"), function(elem) {
+            addToAssetQueue($, 'js', elem, 'src', 'javascripts/');
+          });
+  
+          theme.data.fixedSources[name] = window.document.documentElement.innerHTML;
+  
+          // Now remove this name from the object
+          delete self.pageQueue[name];
+  
+          if (_.keys(self.pageQueue).length === 0) {
+            self.fetchAssets(theme, pipeline);
           }
-        });
-
-        _.each($("script[type*=javascript]"), function(elem) {
-          addToAssetQueue('js', node, 'src', 'javascripts/');
-        });
-
-        theme.data.fixedSources[name] = window.document.documentElement.innerHTML;
-
-        // Now remove this name from the object
-        delete self.pageQueue[name];
-
-        if (_.keys(self.pageQueue).length === 0) {
-          self.fetchAssets(theme, pipeline);
         }
       } // done
     });

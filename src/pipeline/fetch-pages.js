@@ -31,17 +31,18 @@ Jailbreak.Pipeline.FetchPages.prototype.run = function(theme, pipeline) {
      if (e) {
        Jailbreak.Pipeline.log(self, 'error: ' + e);
        pipeline.advance(self, theme, {success:false});
+     } else {
+      theme.data.sources[theme.contentMap.pages[count].name] = agent.body;
+      //console.log("theme.data.sources set with length",
+      //            theme.data.sources[theme.contentMap.pages[count].name].length,
+      //            agent.body.length);
+      count++;
+      agent.next();
      }
-    //Not sure what the mapping should be
-    theme.data.sources[theme.contentMap.pages[count].name]=agent.body;
-    //console.log("theme.data.sources set with length",
-    //            theme.data.sources[theme.contentMap.pages[count].name].length,
-    //            agent.body.length);
-   count++;
-    agent.next();
   });
   
   agent.addListener('stop', function (err, agent) {
+   Jailbreak.Pipeline.log(self, "Successfully scraped " + pageName + "(domain: " + domain + " path: " + path);
    pipeline.advance(self, theme, { success: true });
   });
 

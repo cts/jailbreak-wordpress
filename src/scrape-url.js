@@ -9,7 +9,6 @@ url = require('url');
 
 BANNER = "Usage: scrape-url <Workspace> <ThemeName> <PageName> <URL>";
 
-
 /*
  *
  * create directory Workspace/ThemeName if it doesn't already exist.
@@ -41,9 +40,6 @@ exports.run = function() {
 
   // Now we know that <Workspace Directory>/<Theme Directory> exists.
 
-  // TODO(jason): initialize the pipeline to tell it that we DONT want to 
-  // run the third step.
-
   var options = {
     FetchPages: true,
     FetchAssets: true,
@@ -65,7 +61,7 @@ exports.run = function() {
       // TODO(jason)
       // Parse out the domain from the URL
       // e.g. "people.csail.mit.edu"
-      domain: url.parse(requestUrl,true).host,
+      domain: url.parse(requestUrl, true).host,
       pages: [
         {
           name: pageName,
@@ -83,7 +79,5 @@ exports.run = function() {
   // (I'd rather you spend time focusing on how the scraping pipeline works)
   var contentMap = new Jailbreak.ContentMap(contentMapConfig);
   var theme = new Jailbreak.Theme(themeName, themeDirectory, contentMap);
-
   pipeline.run(theme);
 };
-

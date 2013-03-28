@@ -9,8 +9,10 @@ Jailbreak.Pipeline.OutputFiles = function(theme, opts) {
 Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toDir) {
  var directory = path.join(theme.directory, toDir);
   if (! fs.existsSync(directory)) {
+    Jailbreak.Pipeline.log(this, "Writing missing directory: " + directory);
     fs.mkdirSync(directory);
   }
+
   _.each(files, function(obj, url) {
     var data = "";
     var filename = "";
@@ -28,10 +30,11 @@ Jailbreak.Pipeline.OutputFiles.prototype.writeFiles = function(theme, files, toD
 
     try {
       var fullfilename = path.join(directory, filename);
-      Jailbreak.Pipeline.log(this, "Writing " + fullfilename);
+      Jailbreak.Pipeline.log(this, "Writing file: " + fullfilename);
       fs.writeFileSync(fullfilename, data, "utf8");
     } catch (e) {
-      console.log("Could not write file", fullfilename, e);
+      Jailbreak.Pipeline.log(this, "Could not write file: " + fullfilename);
+      Jailbreak.Pipeline.log(this, e);
     }
 
   }, this);
