@@ -160,5 +160,3 @@ Jailbreak.Pipeline.AnnotateDom.prototype.annotateDom = function(theme, pipeline,
 
     return _.keys(self.pageDataQueue.length === 0);
 };
-
-

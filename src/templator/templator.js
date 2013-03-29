@@ -6,9 +6,3 @@ Jailbreak.Templator = function(options) {
 
 };
 
-Jailbreak.Templator.prototype.template = function() {
-
-  template: function(
-
-};
- 

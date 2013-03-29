@@ -12,17 +12,25 @@ var options = {
 }
 */
 
-Jailbreak.Pipeline.Pipeline = function(options) {
-  this.name = "Pipeline";
-  var stages = [];
-  if (options.FetchPages) {stages.push(new Jailbreak.Pipeline.FetchPages());}
-  if (options.FetchAssets) {stages.push(new Jailbreak.Pipeline.FetchAssets());}
-  if (options.AnnotateDom) {stages.push(new Jailbreak.Pipeline.AnnotateDom());}
-  if (options.OutputFiles) {stages.push(new Jailbreak.Pipeline.OutputFiles());}
-  this.stages = stages;
-  this.options = options || {};
+Jailbreak.Pipeline.DefaultOptions = {
+  FetchPages: true,
+  FetchAssets: true,
+  AnnotateDom: true,
+  OutputFiles: true,
+  EvaluateResults: true
 };
 
+Jailbreak.Pipeline.Pipeline = function(options) {
+  this.name = "Pipeline";
+  this.options = _.extend(Jailbreak.Pipeline.DefaultOptions, options);
+  var stages = [];
+  if (this.options.FetchPages) {stages.push(new Jailbreak.Pipeline.FetchPages());}
+  if (this.options.FetchAssets) {stages.push(new Jailbreak.Pipeline.FetchAssets());}
+  if (this.options.AnnotateDom) {stages.push(new Jailbreak.Pipeline.AnnotateDom());}
+  if (this.options.OutputFiles) {stages.push(new Jailbreak.Pipeline.OutputFiles());}
+  if (this.options.EvaluateResults) {stages.push(new Jailbreak.Pipeline.EvaluateResults());}
+  this.stages = stages;
+};
 
 // TODO(jason):
 // You'll need to CREATE this theme object to pass in that specifies what to pull down.
