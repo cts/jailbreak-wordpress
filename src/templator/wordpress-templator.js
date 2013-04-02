@@ -6,7 +6,7 @@ Jailbreak.WordpressTemplator = function(options) {
 
 };
 
-_.extend(Jailbreak.WordpressTemplator.Prototype, Jailbreak.Templator, {
+_.extend(Jailbreak.WordpressTemplator.prototype, Jailbreak.Templator, {
 
   /**
    * Options:

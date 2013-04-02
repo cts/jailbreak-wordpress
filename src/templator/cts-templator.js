@@ -6,7 +6,7 @@ Jailbreak.CtsTemplator = function(theme) {
   this.theme = theme;
 };
 
-_.extend(Jailbreak.CtsTemplator.Prototype, Jailbreak.Templator, {
+_.extend(Jailbreak.CtsTemplator.prototype, Jailbreak.Templator, {
 
   /**
    * Args:

@@ -5,7 +5,7 @@ Jailbreak.Pipeline.EvaluateResults = function(opts) {
   this.evaluator = new Jailbreak.Evaluator();
 };
 
-Jailbreak.Pipeline.FetchAssets.prototype.run = function(theme, pipeline) {
+Jailbreak.Pipeline.EvaluateResults.prototype.run = function(theme, pipeline) {
   var cts = new Jailbreak.CtsTemplator(theme);
   var wordpress = new Jailbreak.WordpressTemplator(theme);
 
