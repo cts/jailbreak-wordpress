@@ -11,7 +11,17 @@
       {
         "name": "zzzPostTitle2",
         "url": "http://people.csail.mit.edu/eob/theme_jailbreak/?p=5",
-        "content": "zzzPost1Content"
+        "content": "zzzPost1Content",
+        "author" : "eob",
+        "title" : "Hello World",
+        "date-created" : "2013-03-21 18:46:03",
+        "dates-modified" : ["2013-03-21 10:32:13", "2013-03-21 18:46:03"],
+        "categories" : ["uncategorized", "zzzCategory1"],
+        "tags" : ["zzztag", "sarahtag", "testtag"],
+        "format" : "standard",
+        "comments" : [
+          {"author" : "sarah" ,"email" : "testemail@blah.edu", "content": "zzzcomment1", "date" : "2013-04-10 20:49:46"}
+        ]
       },
       {
         "name": "zzzPostTitle1",
