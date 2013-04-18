@@ -3,6 +3,7 @@ if (typeof Jailbreak == "undefined") {
 }
 
 Jailbreak.Templator = function(options) {
-
+  render: function(opts) {
+  }
 };
 
