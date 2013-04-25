@@ -30,9 +30,10 @@ Jailbreak.ContentPage.prototype.getPath = function(params) {
 };
 
 Jailbreak.ContentPage.prototype.reset = function() {
-  this.name = null;
-  this.path = null;
-  this.data = null;
+  this.name = null; // "posts" or "post" or "page" or "archive"
+  this.path = null; // URL on Wordpress to find an example of that archetype (name)
+  this.data = null; // the structured data (from Generator) used ot render the page
+  this.html = null; // the HTML representation of the data, from that the URL path
 };
 
 Jailbreak.ContentPage.prototype.loadFromJson = function(json, contentMap) {
