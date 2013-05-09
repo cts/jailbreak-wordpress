@@ -62,7 +62,10 @@ Jailbreak.Pipeline.FetchAssets.prototype.queueAssets = function(theme, pipeline)
       filename: filename,
       type: type
     };
-    e.attr(attr, url);
+
+    // MODIFIES the HTML and resets the URL
+    var localUrl = newbase + filename;
+    e.attr(attr, localUrl);
   };
 
   _.each(_.clone(this.pageQueue), function(html, name) {
@@ -143,11 +146,11 @@ Jailbreak.Pipeline.FetchAssets.prototype.fetchAssets = function(theme, pipeline)
         } else {
           Jailbreak.Pipeline.log(self, "Warning: unknown content type: " + info.type);
         }
-        maybeFinish(url);
       } else {
         Jailbreak.Pipeline.log(self, "Asset request error " + error);
-        pipeline.advance(self, theme, {success:false});
+        //pipeline.advance(self, theme, {success:false});
       }
+      maybeFinish(url);
     });
   }, this);
 };
