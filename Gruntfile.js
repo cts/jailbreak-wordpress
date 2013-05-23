@@ -45,15 +45,6 @@ module.exports = function(grunt) {
         ],
         dest : "release/jailbreak-wordpress.js"
       },
-      scraper: {
-        src: [
-          "src/fragments/prefix._js",
-          "src/scraper/wordpress.js",
-          "src/fragments/postfix._js",
-          "src/scrape-themes.js"
-        ],
-        dest: "release/scrape-themes.js"
-      },
       singleurl: {
         src : [
           "<banner>",
